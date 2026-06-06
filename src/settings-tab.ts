@@ -64,27 +64,50 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
     this.createTab(tabs, "floatingActions", "悬浮窗动作管理");
     this.createTab(tabs, "other", "其他");
 
+    try {
+      this.renderActiveView();
+    } catch (error) {
+      this.renderSettingsError(error);
+    }
+  }
+
+  private renderActiveView(): void {
     if (this.activeView === "menu") {
       this.renderMenuSettings();
-      return;
-    }
-
-    if (this.activeView === "actions") {
+    } else if (this.activeView === "actions") {
       this.renderActionManager();
-      return;
-    }
-
-    if (this.activeView === "floating") {
+    } else if (this.activeView === "floating") {
       this.renderFloatingSettings();
-      return;
-    }
-
-    if (this.activeView === "floatingActions") {
+    } else if (this.activeView === "floatingActions") {
       this.renderFloatingActionSettings();
-      return;
+    } else {
+      this.renderOtherSettings();
     }
+  }
 
-    this.renderOtherSettings();
+  private renderSettingsError(error: unknown): void {
+    console.error("Quicker Wheel settings render failed", error);
+    new Notice("Quicker Wheel 设置页渲染失败，已进入安全模式");
+
+    const section = this.containerEl.createDiv({ cls: "obsidian-quicker-settings-section" });
+    this.addHeading(section, "设置页安全模式");
+    section.createDiv({
+      cls: "setting-item-description",
+      text: "当前页面渲染时出现错误。你可以切换到基础设置，或重新打开插件设置。"
+    });
+
+    new Setting(section)
+      .setName("返回基础设置")
+      .setDesc(error instanceof Error ? error.message : String(error))
+      .addButton((button) =>
+        button
+          .setButtonText("打开")
+          .setCta()
+          .onClick(() => {
+            this.activeView = "menu";
+            this.display();
+          })
+      );
   }
 
   private createTab(container: HTMLElement, view: SettingsView, label: string): void {
@@ -225,7 +248,7 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
     search.value = this.query;
     search.addEventListener("input", () => {
       this.query = search.value;
-      this.renderActionManager();
+      this.display();
     });
 
     const list = sidebar.createDiv({ cls: "obsidian-quicker-action-list" });

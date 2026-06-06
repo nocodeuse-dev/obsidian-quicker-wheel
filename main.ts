@@ -23,6 +23,8 @@ type AppWithSettings = typeof Plugin.prototype.app & {
 export default class ObsidianQuickerPlugin extends Plugin {
   settings: ObsidianQuickerSettings = DEFAULT_SETTINGS;
   private floatingButton: FloatingWheelButton | null = null;
+  private isLayoutReady = false;
+  private saveQueue: Promise<void> = Promise.resolve();
   private settingTab: ObsidianQuickerSettingTab | null = null;
 
   async onload(): Promise<void> {
@@ -48,7 +50,10 @@ export default class ObsidianQuickerPlugin extends Plugin {
 
     this.settingTab = new ObsidianQuickerSettingTab(this.app, this);
     this.addSettingTab(this.settingTab);
-    this.app.workspace.onLayoutReady(() => this.mountFloatingButton());
+    this.app.workspace.onLayoutReady(() => {
+      this.isLayoutReady = true;
+      this.mountFloatingButton();
+    });
   }
 
   onunload(): void {
@@ -94,8 +99,13 @@ export default class ObsidianQuickerPlugin extends Plugin {
 
   async saveSettingsAndRefresh(): Promise<void> {
     this.settings = normalizeSettings(this.settings);
-    await this.saveData(this.settings);
-    this.app.workspace.onLayoutReady(() => this.mountFloatingButton());
+    this.saveQueue = this.saveQueue.then(async () => {
+      await this.saveData(this.settings);
+      if (this.isLayoutReady) {
+        this.mountFloatingButton();
+      }
+    });
+    await this.saveQueue;
   }
 
   openPluginSettings(): void {
