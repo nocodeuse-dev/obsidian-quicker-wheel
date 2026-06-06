@@ -1,0 +1,29 @@
+{
+  "name": "obsidian-quicker-wheel",
+  "version": "0.1.24",
+  "description": "A mobile-friendly Quicker-style radial command wheel for Obsidian.",
+  "main": "main.js",
+  "scripts": {
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+    "dev": "node esbuild.config.mjs",
+    "test": "vitest run",
+    "bump": "node scripts/bump-version.mjs",
+    "sync": "node scripts/bump-version.mjs && npm run build && node scripts/sync.mjs"
+  },
+  "keywords": [
+    "obsidian",
+    "plugin",
+    "quicker",
+    "radial-menu"
+  ],
+  "author": "nocodeuse",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "builtin-modules": "^5.0.0",
+    "esbuild": "^0.28.0",
+    "obsidian": "^1.13.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.0.14"
+  }
+}

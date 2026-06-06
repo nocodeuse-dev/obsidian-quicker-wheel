@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
+    "inlineSourceMap": true,
+    "inlineSources": true,
+    "lib": [
+      "DOM",
+      "ES2022"
+    ],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noImplicitAny": true,
+    "strict": true,
+    "target": "ES2022",
+    "types": [
+      "node"
+    ]
+  },
+  "include": [
+    "src/**/*.ts",
+    "tests/**/*.ts",
+    "main.ts",
+    "esbuild.config.mjs"
+  ]
+}
