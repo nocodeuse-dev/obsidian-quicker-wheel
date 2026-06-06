@@ -1,5 +1,10 @@
 import { describe, expect, test } from "vitest";
-import { buildWheelSlots, calculateWheelRenderSize, findActionForSlot } from "../src/wheel-layout";
+import {
+  buildWheelSlots,
+  calculateWheelRenderSize,
+  findActionForSlot,
+  getWheelViewportSize
+} from "../src/wheel-layout";
 import type { WheelAction } from "../src/types";
 
 describe("buildWheelSlots", () => {
@@ -53,5 +58,27 @@ describe("buildWheelSlots", () => {
     expect(calculateWheelRenderSize({ preferredSize: 420, viewportWidth: 390, viewportHeight: 740 })).toBe(342);
     expect(calculateWheelRenderSize({ preferredSize: 320, viewportWidth: 390, viewportHeight: 740 })).toBe(320);
     expect(calculateWheelRenderSize({ preferredSize: 720, viewportWidth: 280, viewportHeight: 520 })).toBe(232);
+  });
+
+  test("uses visual viewport dimensions when available", () => {
+    const ownerWindow = {
+      innerWidth: 800,
+      innerHeight: 900,
+      visualViewport: {
+        width: 390.4,
+        height: 701.6
+      }
+    } as Window;
+
+    expect(getWheelViewportSize(ownerWindow)).toEqual({ width: 390, height: 702 });
+  });
+
+  test("falls back to inner window dimensions without visual viewport", () => {
+    const ownerWindow = {
+      innerWidth: 412,
+      innerHeight: 732
+    } as Window;
+
+    expect(getWheelViewportSize(ownerWindow)).toEqual({ width: 412, height: 732 });
   });
 });

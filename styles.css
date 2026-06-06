@@ -4,6 +4,7 @@
   background: transparent;
   box-shadow: none;
   display: flex;
+  height: 100vh;
   height: 100dvh;
   justify-content: center;
   max-height: none;
@@ -32,6 +33,7 @@
   align-items: center;
   display: flex;
   justify-content: center;
+  max-height: 100vh;
   max-height: 100dvh;
   max-width: 100vw;
   overflow: visible;

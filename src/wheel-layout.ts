@@ -49,12 +49,28 @@ export interface WheelRenderSizeInput {
   viewportHeight: number;
 }
 
+export interface WheelViewportSize {
+  width: number;
+  height: number;
+}
+
 export function calculateWheelRenderSize(input: WheelRenderSizeInput): number {
   const safeWidth = Math.max(0, input.viewportWidth - 48);
   const safeHeight = Math.max(0, input.viewportHeight - 96);
   const constrained = Math.min(input.preferredSize, safeWidth, safeHeight);
 
   return Math.max(220, Math.round(constrained));
+}
+
+export function getWheelViewportSize(ownerWindow: Window): WheelViewportSize {
+  const visualViewport = ownerWindow.visualViewport;
+  const width = visualViewport?.width ?? ownerWindow.innerWidth;
+  const height = visualViewport?.height ?? ownerWindow.innerHeight;
+
+  return {
+    width: Math.round(width),
+    height: Math.round(height)
+  };
 }
 
 export function polarToCartesian(

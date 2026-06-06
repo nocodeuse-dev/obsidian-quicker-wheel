@@ -9,6 +9,7 @@ import {
   calculateWheelRenderSize,
   describeArcSegment,
   findActionForSlot,
+  getWheelViewportSize,
   polarToCartesian
 } from "./wheel-layout";
 import type { ObsidianQuickerSettings, WheelAction, WheelSlot } from "./types";
@@ -105,10 +106,11 @@ export function renderWheelPreview(
 ): void {
   container.empty();
 
+  const viewportSize = getWheelViewportSize(container.ownerDocument.defaultView ?? window);
   const size = calculateWheelRenderSize({
     preferredSize: settings.wheel.size,
-    viewportWidth: window.innerWidth,
-    viewportHeight: window.innerHeight
+    viewportWidth: viewportSize.width,
+    viewportHeight: viewportSize.height
   });
   const center = size / 2;
   const slots = buildWheelSlots(settings.wheel);
