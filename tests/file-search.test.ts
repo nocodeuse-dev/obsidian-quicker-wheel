@@ -17,4 +17,9 @@ describe("filterObsidianFiles", () => {
   test("returns all files for an empty query", () => {
     expect(filterObsidianFiles(files, " ")).toEqual(files);
   });
+
+  test("limits file suggestions when requested", () => {
+    expect(filterObsidianFiles(files, "", 2)).toEqual(files.slice(0, 2));
+    expect(filterObsidianFiles(files, "m", 1)).toEqual([files[0]]);
+  });
 });

@@ -37,6 +37,8 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
   private activeView: SettingsView = "menu";
   private selectedActionId: string | null = null;
   private selectedDirection: FloatingGestureDirection = "up";
+  private commandCache: ObsidianCommand[] | null = null;
+  private fileCache: ObsidianFileItem[] | null = null;
   private query = "";
 
   constructor(app: App, private readonly plugin: ObsidianQuickerPlugin) {
@@ -189,9 +191,7 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
   private renderFloatingActionSettings(): void {
     const section = this.containerEl.createDiv({ cls: "obsidian-quicker-settings-section obsidian-quicker-floating-action-settings" });
     this.addHeading(section, "悬浮窗动作管理");
-    const commands = listObsidianCommands(this.app);
-    const files = listObsidianMarkdownFiles(this.app);
-    this.renderFloatingDirectionPanel(section, commands, files);
+    this.renderFloatingDirectionPanel(section, this.getCommands());
   }
 
   private renderOtherSettings(): void {
@@ -347,7 +347,7 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
         .addText((text) => {
           text
             .setPlaceholder("搜索命令或输入 command id")
-            .setValue(getCommandInputDisplayValue(listObsidianCommands(this.app), action.commandId))
+            .setValue(getCommandInputDisplayValue(this.getCommands(), action.commandId))
             .onChange(async (value) => {
               action.commandId = this.resolveCommandInputValue(value);
               await this.plugin.saveSettingsAndRefresh();
@@ -356,7 +356,7 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
         new CommandInputSuggest(
           this.app,
           text.inputEl,
-          listObsidianCommands(this.app),
+          this.getCommands(),
           async (command) => {
             action.commandId = command.id;
             text.setValue(command.name);
@@ -380,7 +380,7 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
           new FileInputSuggest(
             this.app,
             text.inputEl,
-            listObsidianMarkdownFiles(this.app),
+            () => this.getFiles(),
             async (file) => {
               action.filePath = file.path;
               text.setValue(file.path);
@@ -592,17 +592,26 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
 
   private resolveCommandInputValue(value: string): string {
     const trimmed = value.trim();
-    const command = listObsidianCommands(this.app).find(
+    const command = this.getCommands().find(
       (candidate) => candidate.name === trimmed || candidate.id === trimmed
     );
 
     return command?.id ?? trimmed;
   }
 
+  private getCommands(): ObsidianCommand[] {
+    this.commandCache ??= listObsidianCommands(this.app);
+    return this.commandCache;
+  }
+
+  private getFiles(): ObsidianFileItem[] {
+    this.fileCache ??= listObsidianMarkdownFiles(this.app);
+    return this.fileCache;
+  }
+
   private renderFloatingDirectionPanel(
     container: HTMLElement,
-    commands: ObsidianCommand[],
-    files: ObsidianFileItem[]
+    commands: ObsidianCommand[]
   ): void {
     const panel = container.createDiv({ cls: "obsidian-quicker-direction-panel" });
     const map = panel.createDiv({ cls: "obsidian-quicker-direction-map" });
@@ -612,7 +621,7 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
       this.renderFloatingDirectionButton(map, direction);
     }
 
-    this.renderSelectedFloatingDirectionEditor(panel, commands, files);
+    this.renderSelectedFloatingDirectionEditor(panel, commands);
   }
 
   private renderFloatingDirectionButton(
@@ -646,8 +655,7 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
 
   private renderSelectedFloatingDirectionEditor(
     container: HTMLElement,
-    commands: ObsidianCommand[],
-    files: ObsidianFileItem[]
+    commands: ObsidianCommand[]
   ): void {
     const direction = this.selectedDirection;
     const action = this.plugin.settings.floatingButton.directionActions[direction];
@@ -710,14 +718,13 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
       return;
     }
 
-    this.renderInlineDirectionActionFields(body, action, commands, files);
+    this.renderInlineDirectionActionFields(body, action, commands);
   }
 
   private renderInlineDirectionActionFields(
     container: HTMLElement,
     action: FloatingDirectionAction,
-    commands: ObsidianCommand[],
-    files: ObsidianFileItem[]
+    commands: ObsidianCommand[]
   ): void {
     if (action.type === "command") {
       const text = new TextComponent(container)
@@ -746,7 +753,7 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
           await this.plugin.saveSettingsAndRefresh();
         });
 
-      new FileInputSuggest(this.app, text.inputEl, files, async (file) => {
+      new FileInputSuggest(this.app, text.inputEl, () => this.getFiles(), async (file) => {
         action.filePath = file.path;
         text.setValue(file.path);
         await this.plugin.saveSettingsAndRefresh();
@@ -786,7 +793,7 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
     }
 
     if (action.type === "command") {
-      return getCommandInputDisplayValue(listObsidianCommands(this.app), action.commandId) || "未设置命令";
+      return getCommandInputDisplayValue(this.getCommands(), action.commandId) || "未设置命令";
     }
 
     if (action.type === "file") {
@@ -852,7 +859,7 @@ class FileInputSuggest extends AbstractInputSuggest<ObsidianFileItem> {
   constructor(
     app: App,
     inputEl: HTMLInputElement,
-    private readonly files: ObsidianFileItem[],
+    private readonly getFiles: () => ObsidianFileItem[],
     private readonly onChooseFile: (file: ObsidianFileItem) => Promise<void>
   ) {
     super(app, inputEl);
@@ -860,7 +867,7 @@ class FileInputSuggest extends AbstractInputSuggest<ObsidianFileItem> {
   }
 
   protected getSuggestions(query: string): ObsidianFileItem[] {
-    return filterObsidianFiles(this.files, query);
+    return filterObsidianFiles(this.getFiles(), query, this.limit);
   }
 
   renderSuggestion(file: ObsidianFileItem, el: HTMLElement): void {
@@ -887,7 +894,7 @@ class CommandInputSuggest extends AbstractInputSuggest<ObsidianCommand> {
   }
 
   protected getSuggestions(query: string): ObsidianCommand[] {
-    return filterObsidianCommands(this.commands, query);
+    return filterObsidianCommands(this.commands, query, this.limit);
   }
 
   renderSuggestion(command: ObsidianCommand, el: HTMLElement): void {

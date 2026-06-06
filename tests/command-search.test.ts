@@ -32,6 +32,16 @@ describe("filterObsidianCommands", () => {
       "file-explorer:new-file"
     ]);
   });
+
+  test("limits command suggestions when requested", () => {
+    expect(filterObsidianCommands(commands, "", 2).map((command) => command.id)).toEqual([
+      "app:open-settings",
+      "command-palette:open"
+    ]);
+    expect(filterObsidianCommands(commands, "打开", 1).map((command) => command.id)).toEqual([
+      "app:open-settings"
+    ]);
+  });
 });
 
 describe("getCommandInputDisplayValue", () => {

@@ -34,17 +34,27 @@ export function listObsidianCommands(app: App): ObsidianCommand[] {
 
 export function filterObsidianCommands(
   commands: ObsidianCommand[],
-  query: string
+  query: string,
+  limit = Number.POSITIVE_INFINITY
 ): ObsidianCommand[] {
   const normalizedQuery = query.trim().toLowerCase();
+  const results: ObsidianCommand[] = [];
+
   if (!normalizedQuery) {
-    return commands;
+    return commands.slice(0, limit);
   }
 
-  return commands.filter((command) => {
+  for (const command of commands) {
     const searchable = `${command.name} ${command.id}`.toLowerCase();
-    return searchable.includes(normalizedQuery);
-  });
+    if (searchable.includes(normalizedQuery)) {
+      results.push(command);
+      if (results.length >= limit) {
+        break;
+      }
+    }
+  }
+
+  return results;
 }
 
 export function getCommandInputDisplayValue(
