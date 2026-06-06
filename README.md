@@ -105,7 +105,7 @@ https://github.com/nocodeuse-dev/obsidian-quicker-wheel
 
 - 插件不收集遥测数据。
 - 插件不要求登录任何账号。
-- 插件会读取 vault 内 Markdown 文件路径，用于“打开文件”动作的搜索建议；不会上传文件路径或文件内容。
+- 打开文件动作只使用你手动填写的 vault 内路径，或你点击“使用当前文件”时的当前文件路径。
 - 点击 `其他` 页面中的帮助按钮会打开飞书文档链接。
 - 如果你配置了 URI 动作，执行该动作时会打开你自己填写的外部链接。
 
@@ -113,7 +113,7 @@ https://github.com/nocodeuse-dev/obsidian-quicker-wheel
 
 - Quicker Wheel does not collect telemetry.
 - Quicker Wheel does not require any account login.
-- The plugin reads Markdown file paths from your vault to provide file search suggestions for "open file" actions. It does not upload file paths or file contents.
+- Open-file actions only use the vault path that you type manually, or the current file path when you click "Use current file".
 - The help button in the "Other" settings tab opens a Feishu document link.
 - URI actions open the external links that you configure yourself.
 

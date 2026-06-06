@@ -541,6 +541,17 @@
   padding: 14px;
 }
 
+.obsidian-quicker-direction-editor .setting-item {
+  background: transparent;
+  border: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.obsidian-quicker-direction-editor .setting-item-control {
+  min-width: min(100%, 280px);
+}
+
 .obsidian-quicker-direction-editor-header {
   margin-bottom: 8px;
 }
@@ -558,6 +569,7 @@
 
 .obsidian-quicker-direction-editor-body input,
 .obsidian-quicker-direction-editor-body textarea {
+  max-width: 100%;
   width: 100%;
 }
 
@@ -570,6 +582,12 @@
   display: flex;
   justify-content: flex-end;
   margin-top: 16px;
+}
+
+.obsidian-quicker-direction-editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
 }
 
 .obsidian-quicker-save-action-button {
@@ -632,6 +650,7 @@
   }
 
   .obsidian-quicker-direction-panel {
+    gap: 12px;
     grid-template-columns: 1fr;
   }
 
@@ -655,6 +674,43 @@
   .obsidian-quicker-direction-center {
     height: 64px;
     width: 64px;
+  }
+
+  .obsidian-quicker-direction-editor {
+    border-radius: 8px;
+    padding: 12px;
+  }
+
+  .obsidian-quicker-direction-editor .setting-item-control {
+    min-width: 0;
+  }
+
+  .obsidian-quicker-direction-editor-actions {
+    justify-content: stretch;
+  }
+
+  .obsidian-quicker-direction-editor-actions button {
+    width: 100%;
+  }
+
+  .obsidian-quicker-direction-editor-title {
+    font-size: 17px;
+  }
+
+  .obsidian-quicker-direction-editor-summary {
+    word-break: break-all;
+  }
+
+  .obsidian-quicker-direction-editor-body .setting-item-description {
+    line-height: 1.35;
+  }
+
+  .obsidian-quicker-direction-editor-body .setting-item-control {
+    gap: 8px;
+  }
+
+  .obsidian-quicker-direction-editor-body .setting-item-control input[type="text"] {
+    min-width: 0;
   }
 
   .obsidian-quicker-action-preview {

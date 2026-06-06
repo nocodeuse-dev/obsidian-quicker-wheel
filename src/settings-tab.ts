@@ -5,7 +5,6 @@ import {
   PluginSettingTab,
   SliderComponent,
   Setting,
-  TextAreaComponent,
   TextComponent
 } from "obsidian";
 import type { App } from "obsidian";
@@ -16,11 +15,6 @@ import {
   getCommandInputDisplayValue,
   listObsidianCommands
 } from "./obsidian-commands";
-import {
-  filterObsidianFiles,
-  listObsidianMarkdownFiles
-} from "./obsidian-files";
-import type { ObsidianFileItem } from "./obsidian-files";
 import {
   FLOATING_DIRECTION_LABELS,
   FLOATING_DIRECTIONS
@@ -39,7 +33,6 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
   private selectedDirection: FloatingGestureDirection = "up";
   private commandCache: ObsidianCommand[] | null = null;
   private directionDrafts: Partial<Record<FloatingGestureDirection, FloatingDirectionAction>> = {};
-  private fileCache: ObsidianFileItem[] | null = null;
   private query = "";
 
   constructor(app: App, private readonly plugin: ObsidianQuickerPlugin) {
@@ -389,10 +382,12 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
         );
         });
     } else if (action.type === "file") {
+      let fileInput: TextComponent | null = null;
       new Setting(editor)
         .setName("打开文件")
-        .setDesc("搜索笔记名称，或直接粘贴 vault 内文件路径。")
+        .setDesc("输入 vault 内文件路径，或使用当前打开文件。")
         .addText((text) => {
+          fileInput = text;
           text
             .setPlaceholder("搜索文件或输入文件路径")
             .setValue(action.filePath ?? "")
@@ -400,18 +395,21 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
               action.filePath = value.trim();
               await this.plugin.saveSettingsAndRefresh();
             });
-
-          new FileInputSuggest(
-            this.app,
-            text.inputEl,
-            () => this.getFiles(),
-            async (file) => {
-              action.filePath = file.path;
-              text.setValue(file.path);
+        })
+        .addButton((button) =>
+          button
+            .setButtonText("使用当前文件")
+            .onClick(async () => {
+              const activePath = this.getActiveFilePath();
+              if (!activePath) {
+                new Notice("当前没有打开的 Markdown 文件");
+                return;
+              }
+              action.filePath = activePath;
+              fileInput?.setValue(activePath);
               await this.plugin.saveSettingsAndRefresh();
-            }
-          );
-        });
+            })
+        );
     } else if (action.type === "uri") {
       new Setting(editor)
         .setName("URI")
@@ -628,11 +626,6 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
     return this.commandCache;
   }
 
-  private getFiles(): ObsidianFileItem[] {
-    this.fileCache ??= listObsidianMarkdownFiles(this.app);
-    return this.fileCache;
-  }
-
   private renderFloatingDirectionPanel(
     container: HTMLElement,
     commands: ObsidianCommand[]
@@ -748,51 +741,83 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
     commands: ObsidianCommand[]
   ): void {
     if (action.type === "command") {
-      const text = new TextComponent(container)
-        .setPlaceholder("搜索命令或输入 command id")
-        .setValue(getCommandInputDisplayValue(commands, action.commandId))
-        .onChange((value) => {
-          action.commandId = this.resolveCommandInputValue(value);
-        });
+      new Setting(container)
+        .setName("命令")
+        .setDesc("搜索命令名称，或直接粘贴 command id。")
+        .addText((text) => {
+          text
+            .setPlaceholder("搜索命令或输入 command id")
+            .setValue(getCommandInputDisplayValue(commands, action.commandId))
+            .onChange((value) => {
+              action.commandId = this.resolveCommandInputValue(value);
+            });
 
-      new CommandInputSuggest(this.app, text.inputEl, commands, (command) => {
-        action.commandId = command.id;
-        text.setValue(command.name);
-      });
+          new CommandInputSuggest(this.app, text.inputEl, commands, (command) => {
+            action.commandId = command.id;
+            text.setValue(command.name);
+          });
+        });
       return;
     }
 
     if (action.type === "file") {
-      const text = new TextComponent(container)
-        .setPlaceholder("搜索文件或输入文件路径")
-        .setValue(action.filePath ?? "")
-        .onChange((value) => {
-          action.filePath = value.trim();
-        });
-
-      new FileInputSuggest(this.app, text.inputEl, () => this.getFiles(), (file) => {
-        action.filePath = file.path;
-        text.setValue(file.path);
-      });
+      new Setting(container)
+        .setName("文件路径")
+        .setDesc("输入 vault 内文件路径。为避免移动端闪退，这里不再弹出全库文件候选。")
+        .addText((text) =>
+          text
+            .setPlaceholder("例如：Inbox/今日.md")
+            .setValue(action.filePath ?? "")
+            .onChange((value) => {
+              action.filePath = value.trim();
+            })
+        )
+        .addButton((button) =>
+          button
+            .setButtonText("使用当前文件")
+            .onClick(() => {
+              const activePath = this.getActiveFilePath();
+              if (!activePath) {
+                new Notice("当前没有打开的 Markdown 文件");
+                return;
+              }
+              action.filePath = activePath;
+              this.display();
+            })
+        );
       return;
     }
 
     if (action.type === "uri") {
-      new TextComponent(container)
-        .setPlaceholder("输入 URI")
-        .setValue(action.uri ?? "")
-        .onChange((value) => {
-          action.uri = value;
-        });
+      new Setting(container)
+        .setName("URI")
+        .setDesc("输入要打开的链接。")
+        .addText((text) =>
+          text
+            .setPlaceholder("输入 URI")
+            .setValue(action.uri ?? "")
+            .onChange((value) => {
+              action.uri = value;
+            })
+        );
       return;
     }
 
-    new TextAreaComponent(container)
-      .setPlaceholder("脚本预留，当前不会执行")
-      .setValue(action.script ?? "")
-      .onChange((value) => {
-        action.script = value;
-      });
+    new Setting(container)
+      .setName("脚本")
+      .setDesc("脚本动作预留字段，当前版本不会执行。")
+      .addTextArea((text) =>
+        text
+          .setPlaceholder("脚本预留，当前不会执行")
+          .setValue(action.script ?? "")
+          .onChange((value) => {
+            action.script = value;
+          })
+      );
+  }
+
+  private getActiveFilePath(): string | null {
+    return this.app.workspace.getActiveFile()?.path ?? null;
   }
 
   private renderDirectionEditorActions(
@@ -980,33 +1005,6 @@ function sanitizeDirectionAction(action: FloatingDirectionAction): FloatingDirec
     script: base.script ?? "",
     enabled: base.enabled
   };
-}
-
-class FileInputSuggest extends AbstractInputSuggest<ObsidianFileItem> {
-  constructor(
-    app: App,
-    inputEl: HTMLInputElement,
-    private readonly getFiles: () => ObsidianFileItem[],
-    private readonly onChooseFile: (file: ObsidianFileItem) => void | Promise<void>
-  ) {
-    super(app, inputEl);
-    this.limit = 50;
-  }
-
-  protected getSuggestions(query: string): ObsidianFileItem[] {
-    return filterObsidianFiles(this.getFiles(), query, this.limit);
-  }
-
-  renderSuggestion(file: ObsidianFileItem, el: HTMLElement): void {
-    el.addClass("obsidian-quicker-command-suggestion");
-    el.createDiv({ cls: "obsidian-quicker-command-suggestion-name", text: file.name });
-    el.createDiv({ cls: "obsidian-quicker-command-suggestion-id", text: file.path });
-  }
-
-  selectSuggestion(file: ObsidianFileItem): void {
-    void this.onChooseFile(file);
-    this.close();
-  }
 }
 
 class CommandInputSuggest extends AbstractInputSuggest<ObsidianCommand> {

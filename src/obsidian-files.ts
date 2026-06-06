@@ -1,15 +1,6 @@
-import type { App } from "obsidian";
-
 export interface ObsidianFileItem {
   name: string;
   path: string;
-}
-
-export function listObsidianMarkdownFiles(app: App): ObsidianFileItem[] {
-  return app.vault.getMarkdownFiles().map((file) => ({
-    name: file.basename,
-    path: file.path
-  })).sort((a, b) => a.path.localeCompare(b.path, "zh-Hans"));
 }
 
 export function filterObsidianFiles(
