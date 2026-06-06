@@ -38,6 +38,7 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
   private selectedActionId: string | null = null;
   private selectedDirection: FloatingGestureDirection = "up";
   private commandCache: ObsidianCommand[] | null = null;
+  private directionDrafts: Partial<Record<FloatingGestureDirection, FloatingDirectionAction>> = {};
   private fileCache: ObsidianFileItem[] | null = null;
   private query = "";
 
@@ -681,7 +682,7 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
     commands: ObsidianCommand[]
   ): void {
     const direction = this.selectedDirection;
-    const action = this.plugin.settings.floatingButton.directionActions[direction];
+    const action = this.getDirectionDraft(direction);
     const card = container.createDiv({ cls: "obsidian-quicker-direction-editor" });
     const header = card.createDiv({ cls: "obsidian-quicker-direction-editor-header" });
     header.createDiv({
@@ -696,10 +697,8 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
     new Setting(card)
       .setName("启用")
       .addToggle((toggle) =>
-        toggle.setValue(action.enabled).onChange(async (value) => {
+        toggle.setValue(action.enabled).onChange((value) => {
           action.enabled = value;
-          await this.plugin.saveSettingsAndRefresh();
-          this.display();
         })
       );
 
@@ -714,9 +713,8 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
           .addOption("uri", "URI")
           .addOption("script", "脚本")
           .setValue(action.type)
-          .onChange(async (value) => {
+          .onChange((value) => {
             action.type = value as FloatingDirectionAction["type"];
-            await this.plugin.saveSettingsAndRefresh();
             this.display();
           })
       );
@@ -732,16 +730,16 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
           for (const wheelAction of this.plugin.settings.actions) {
             dropdown.addOption(wheelAction.id, `${wheelAction.icon} ${wheelAction.label}`);
           }
-          dropdown.setValue(action.actionId ?? "").onChange(async (value) => {
+          dropdown.setValue(action.actionId ?? "").onChange((value) => {
             action.actionId = value;
-            await this.plugin.saveSettingsAndRefresh();
-            this.display();
           });
         });
+      this.renderDirectionEditorActions(card, direction, action);
       return;
     }
 
     this.renderInlineDirectionActionFields(body, action, commands);
+    this.renderDirectionEditorActions(card, direction, action);
   }
 
   private renderInlineDirectionActionFields(
@@ -753,16 +751,13 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
       const text = new TextComponent(container)
         .setPlaceholder("搜索命令或输入 command id")
         .setValue(getCommandInputDisplayValue(commands, action.commandId))
-        .onChange(async (value) => {
+        .onChange((value) => {
           action.commandId = this.resolveCommandInputValue(value);
-          await this.plugin.saveSettingsAndRefresh();
         });
 
-      new CommandInputSuggest(this.app, text.inputEl, commands, async (command) => {
+      new CommandInputSuggest(this.app, text.inputEl, commands, (command) => {
         action.commandId = command.id;
         text.setValue(command.name);
-        await this.plugin.saveSettingsAndRefresh();
-        this.display();
       });
       return;
     }
@@ -771,16 +766,13 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
       const text = new TextComponent(container)
         .setPlaceholder("搜索文件或输入文件路径")
         .setValue(action.filePath ?? "")
-        .onChange(async (value) => {
+        .onChange((value) => {
           action.filePath = value.trim();
-          await this.plugin.saveSettingsAndRefresh();
         });
 
-      new FileInputSuggest(this.app, text.inputEl, () => this.getFiles(), async (file) => {
+      new FileInputSuggest(this.app, text.inputEl, () => this.getFiles(), (file) => {
         action.filePath = file.path;
         text.setValue(file.path);
-        await this.plugin.saveSettingsAndRefresh();
-        this.display();
       });
       return;
     }
@@ -789,9 +781,8 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
       new TextComponent(container)
         .setPlaceholder("输入 URI")
         .setValue(action.uri ?? "")
-        .onChange(async (value) => {
+        .onChange((value) => {
           action.uri = value;
-          await this.plugin.saveSettingsAndRefresh();
         });
       return;
     }
@@ -799,10 +790,49 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
     new TextAreaComponent(container)
       .setPlaceholder("脚本预留，当前不会执行")
       .setValue(action.script ?? "")
-      .onChange(async (value) => {
+      .onChange((value) => {
         action.script = value;
-        await this.plugin.saveSettingsAndRefresh();
       });
+  }
+
+  private renderDirectionEditorActions(
+    container: HTMLElement,
+    direction: FloatingGestureDirection,
+    draft: FloatingDirectionAction
+  ): void {
+    const actions = container.createDiv({ cls: "obsidian-quicker-direction-editor-actions" });
+    const saveButton = actions.createEl("button", {
+      cls: "mod-cta obsidian-quicker-save-action-button",
+      text: "保存方向动作"
+    });
+    saveButton.addEventListener("click", () => {
+      void this.saveDirectionAction(direction, draft);
+    });
+  }
+
+  private getDirectionDraft(direction: FloatingGestureDirection): FloatingDirectionAction {
+    const draft = this.directionDrafts[direction];
+    if (draft) {
+      return draft;
+    }
+
+    const source = this.plugin.settings.floatingButton.directionActions[direction];
+    const nextDraft = cloneDirectionAction(source);
+    this.directionDrafts[direction] = nextDraft;
+    return nextDraft;
+  }
+
+  private async saveDirectionAction(
+    direction: FloatingGestureDirection,
+    draft: FloatingDirectionAction
+  ): Promise<void> {
+    this.plugin.settings.floatingButton.directionActions[direction] = sanitizeDirectionAction(draft);
+    this.directionDrafts[direction] = cloneDirectionAction(
+      this.plugin.settings.floatingButton.directionActions[direction]
+    );
+    await this.plugin.saveSettingsAndRefresh();
+    new Notice(`${FLOATING_DIRECTION_LABELS[direction]}滑动作已保存`);
+    this.display();
   }
 
   private getDirectionActionSummary(action: FloatingDirectionAction): string {
@@ -878,12 +908,86 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
   }
 }
 
+function cloneDirectionAction(action: FloatingDirectionAction): FloatingDirectionAction {
+  return {
+    type: action.type,
+    actionId: action.actionId ?? "",
+    commandId: action.commandId ?? "",
+    filePath: action.filePath ?? "",
+    uri: action.uri ?? "",
+    script: action.script ?? "",
+    enabled: action.enabled
+  };
+}
+
+function sanitizeDirectionAction(action: FloatingDirectionAction): FloatingDirectionAction {
+  const base = cloneDirectionAction(action);
+
+  if (base.type === "wheelAction") {
+    return {
+      type: "wheelAction",
+      actionId: base.actionId?.trim() ?? "",
+      commandId: "",
+      filePath: "",
+      uri: "",
+      script: "",
+      enabled: base.enabled
+    };
+  }
+
+  if (base.type === "command") {
+    return {
+      type: "command",
+      actionId: "",
+      commandId: base.commandId?.trim() ?? "",
+      filePath: "",
+      uri: "",
+      script: "",
+      enabled: base.enabled
+    };
+  }
+
+  if (base.type === "file") {
+    return {
+      type: "file",
+      actionId: "",
+      commandId: "",
+      filePath: base.filePath?.trim() ?? "",
+      uri: "",
+      script: "",
+      enabled: base.enabled
+    };
+  }
+
+  if (base.type === "uri") {
+    return {
+      type: "uri",
+      actionId: "",
+      commandId: "",
+      filePath: "",
+      uri: base.uri?.trim() ?? "",
+      script: "",
+      enabled: base.enabled
+    };
+  }
+
+  return {
+    type: "script",
+    actionId: "",
+    commandId: "",
+    filePath: "",
+    uri: "",
+    script: base.script ?? "",
+    enabled: base.enabled
+  };
+}
+
 class FileInputSuggest extends AbstractInputSuggest<ObsidianFileItem> {
   constructor(
     app: App,
     inputEl: HTMLInputElement,
     private readonly getFiles: () => ObsidianFileItem[],
-    private readonly onChooseFile: (file: ObsidianFileItem) => Promise<void>
+    private readonly onChooseFile: (file: ObsidianFileItem) => void | Promise<void>
   ) {
     super(app, inputEl);
     this.limit = 50;
@@ -910,7 +1014,7 @@ class CommandInputSuggest extends AbstractInputSuggest<ObsidianCommand> {
     app: App,
     inputEl: HTMLInputElement,
     private readonly commands: ObsidianCommand[],
-    private readonly onChooseCommand: (command: ObsidianCommand) => Promise<void>
+    private readonly onChooseCommand: (command: ObsidianCommand) => void | Promise<void>
   ) {
     super(app, inputEl);
     this.limit = 50;

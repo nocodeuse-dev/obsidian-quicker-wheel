@@ -136,4 +136,21 @@ describe("executeWheelAction", () => {
     expect(result).toEqual({ ok: true });
     expect(executeCommandById).toHaveBeenCalledWith("quickadd:choice:collect");
   });
+
+  test("executes an inline floating direction command action", () => {
+    const executeCommandById = vi.fn(() => true);
+
+    const result = executeFloatingDirectionAction(
+      {
+        type: "command",
+        commandId: "app:open-settings",
+        enabled: true
+      },
+      [],
+      { executeCommandById }
+    );
+
+    expect(result).toEqual({ ok: true });
+    expect(executeCommandById).toHaveBeenCalledWith("app:open-settings");
+  });
 });
