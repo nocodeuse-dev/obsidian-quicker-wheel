@@ -1,4 +1,4 @@
-# Obsidian Quicker
+# Quicker Wheel
 
 一个面向 Obsidian 移动端优化的 Quicker 风格轮盘插件。它提供轮盘菜单、悬浮按钮、8 方向滑动动作，让常用命令和文件打开更快触达。
 
@@ -28,7 +28,7 @@
 https://github.com/nocodeuse-dev/obsidian-quicker-wheel
 ```
 
-5. 回到 Obsidian 的第三方插件列表，启用 `Obsidian Quicker`。
+5. 回到 Obsidian 的第三方插件列表，启用 `Quicker Wheel`。
 
 ### 方式二：手动安装
 
@@ -39,19 +39,19 @@ https://github.com/nocodeuse-dev/obsidian-quicker-wheel
 2. 在你的 Obsidian 仓库中创建文件夹：
 
 ```text
-.obsidian/plugins/obsidian-quicker-wheel/
+.obsidian/plugins/quicker-wheel/
 ```
 
 3. 把三个文件放进这个文件夹。
 4. 重启 Obsidian，或重新加载第三方插件。
-5. 在设置中启用 `Obsidian Quicker`。
+5. 在设置中启用 `Quicker Wheel`。
 
 ## 使用方式
 
 在 Obsidian 命令面板中搜索并运行：
 
 ```text
-打开 Obsidian Quicker 轮盘
+打开 Quicker Wheel 轮盘
 ```
 
 也可以在插件设置中开启悬浮按钮。移动端推荐使用悬浮按钮作为主要入口：
@@ -63,7 +63,7 @@ https://github.com/nocodeuse-dev/obsidian-quicker-wheel
 如果想快速进入插件设置，可以运行：
 
 ```text
-打开 Obsidian Quicker 设置
+打开 Quicker Wheel 设置
 ```
 
 ## 设置说明
@@ -79,6 +79,17 @@ https://github.com/nocodeuse-dev/obsidian-quicker-wheel
 在 `轮盘动作管理` 中，可以编辑轮盘动作的名称、图标、动作类型和目标命令或文件。
 
 在 `悬浮窗动作管理` 中，可以为 8 个方向分别设置动作，也可以直接复用已有轮盘动作。
+
+## 官方社区插件提交说明
+
+本仓库保留源码、构建配置、测试和发布产物，以便通过 Obsidian 官方社区插件审核。
+
+## 隐私与外部链接
+
+- 插件不收集遥测数据。
+- 插件不要求登录任何账号。
+- 点击 `其他` 页面中的帮助按钮会打开飞书文档链接。
+- 如果你配置了 URI 动作，执行该动作时会打开你自己填写的外部链接。
 
 ## 从源码构建
 
@@ -106,7 +117,7 @@ npm run build
 npm run sync
 ```
 
-注意：`sync` 脚本使用的是作者本机 Obsidian 仓库路径，如果你要在自己的电脑上使用，需要先修改 `scripts/sync.mjs`。
+注意：`sync` 脚本使用的是作者本机 Obsidian 仓库路径，如果你要在自己的电脑上使用，需要先修改 `scripts/sync.mjs` 或设置 `OBSIDIAN_QUICKER_TARGET` 环境变量。
 
 ## 作者
 

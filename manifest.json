@@ -1,9 +1,9 @@
 {
-  "id": "obsidian-quicker-wheel",
-  "name": "Obsidian Quicker",
-  "version": "0.1.24",
+  "id": "quicker-wheel",
+  "name": "Quicker Wheel",
+  "version": "0.1.25",
   "minAppVersion": "1.5.0",
-  "description": "A mobile-friendly Quicker-style radial command wheel for Obsidian commands.",
+  "description": "A mobile-friendly Quicker-style radial command wheel.",
   "author": "nocodeuse",
   "authorUrl": "",
   "isDesktopOnly": false
