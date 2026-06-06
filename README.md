@@ -1,6 +1,23 @@
 # Quicker Wheel
 
+Quicker Wheel is a mobile-friendly radial command wheel for Obsidian. It brings a Quicker-style circular menu, a configurable floating button, and eight-direction swipe actions to both desktop and mobile. You can bind wheel slots or floating-button gestures to Obsidian commands, notes in your vault, URI actions, or reusable wheel actions.
+
+The plugin is designed for fast touch-first workflows: tap the floating button to open the wheel, swipe in one of eight directions to run an action, or long-press and drag to move the button.
+
 一个面向 Obsidian 移动端优化的 Quicker 风格轮盘插件。它提供轮盘菜单、悬浮按钮、8 方向滑动动作，让常用命令和文件打开更快触达。
+
+## Features
+
+- Open a Quicker-style radial wheel from the command palette or a floating button.
+- Bind wheel slots to Obsidian commands, vault files, URI actions, and reserved script actions.
+- Tap an empty wheel slot to create a new action for that exact position.
+- Use the floating button on both desktop and mobile.
+- Configure three floating-button gestures:
+  - Tap: open the wheel
+  - Quick swipe in eight directions: run the matching direction action
+  - Long press and drag: move the floating button
+- Reuse existing wheel actions for floating-button direction actions.
+- Customize wheel size, ring count, slot count, text size, opacity, colors, and gesture timing.
 
 ## 功能特点
 
@@ -88,8 +105,17 @@ https://github.com/nocodeuse-dev/obsidian-quicker-wheel
 
 - 插件不收集遥测数据。
 - 插件不要求登录任何账号。
+- 插件会读取 vault 内 Markdown 文件路径，用于“打开文件”动作的搜索建议；不会上传文件路径或文件内容。
 - 点击 `其他` 页面中的帮助按钮会打开飞书文档链接。
 - 如果你配置了 URI 动作，执行该动作时会打开你自己填写的外部链接。
+
+## Privacy and external links
+
+- Quicker Wheel does not collect telemetry.
+- Quicker Wheel does not require any account login.
+- The plugin reads Markdown file paths from your vault to provide file search suggestions for "open file" actions. It does not upload file paths or file contents.
+- The help button in the "Other" settings tab opens a Feishu document link.
+- URI actions open the external links that you configure yourself.
 
 ## 从源码构建
 

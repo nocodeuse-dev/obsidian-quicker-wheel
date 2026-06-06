@@ -64,7 +64,7 @@ export class QuickerWheelModal extends Modal {
   }
 
   private openFileByPath(path: string): boolean {
-    const file = this.app.vault.getFileByPath(path);
+    const file = this.app.vault.getAbstractFileByPath(path);
     if (!(file instanceof TFile)) {
       return false;
     }
@@ -94,7 +94,7 @@ interface RenderWheelOptions {
   interactive: boolean;
   selectedActionId?: string;
   onAction?: (action: WheelAction) => void;
-  onSlot?: (slot: WheelSlot) => void;
+  onSlot?: (slot: WheelSlot) => void | Promise<void>;
   onCenterClick?: () => void;
 }
 
@@ -122,7 +122,8 @@ export function renderWheelPreview(
   wrapper.style.height = `${size}px`;
   wrapper.style.opacity = `${settings.wheel.opacity / 100}`;
 
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  const activeDocument = container.ownerDocument;
+  const svg = activeDocument.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", `0 0 ${size} ${size}`);
   svg.addClass("obsidian-quicker-wheel-svg");
   wrapper.appendChild(svg);
@@ -133,7 +134,7 @@ export function renderWheelPreview(
 
   for (const slot of slots) {
     const action = findActionForSlot(settings.actions, slot.ringIndex, slot.slotIndex);
-    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    const path = activeDocument.createElementNS("http://www.w3.org/2000/svg", "path");
     const innerRadius = center * slot.innerRadiusRatio;
     const outerRadius = center * slot.outerRadiusRatio;
     path.setAttribute(
@@ -155,7 +156,7 @@ export function renderWheelPreview(
         return;
       }
       if (activation === "slot" && options.onSlot) {
-        options.onSlot(slot);
+        void options.onSlot(slot);
       }
     });
     svg.appendChild(path);
@@ -175,7 +176,7 @@ export function renderWheelPreview(
         return;
       }
       if (activation === "slot" && options.onSlot) {
-        options.onSlot(slot);
+        void options.onSlot(slot);
       }
     });
 

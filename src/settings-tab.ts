@@ -1,7 +1,6 @@
 import {
   AbstractInputSuggest,
   ColorComponent,
-  DropdownComponent,
   Notice,
   PluginSettingTab,
   SliderComponent,
@@ -98,9 +97,13 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
     });
   }
 
+  private addHeading(container: HTMLElement, text: string): void {
+    new Setting(container).setName(text).setHeading();
+  }
+
   private renderMenuSettings(): void {
     const section = this.containerEl.createDiv({ cls: "obsidian-quicker-settings-section" });
-    section.createEl("h2", { text: "基础设置" });
+    this.addHeading(section, "基础设置");
 
     this.addNumberSetting(section, "轮盘圈数", "1 到 3 圈。", 1, 3, this.plugin.settings.wheel.ringCount, async (value) => {
       this.plugin.settings.wheel.ringCount = value;
@@ -131,7 +134,7 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
 
   private renderFloatingSettings(): void {
     const section = this.containerEl.createDiv({ cls: "obsidian-quicker-settings-section obsidian-quicker-floating-settings" });
-    section.createEl("h2", { text: "悬浮窗设置" });
+    this.addHeading(section, "悬浮窗设置");
 
     new Setting(section)
       .setName("移动端悬浮按钮")
@@ -153,7 +156,7 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
         })
       );
 
-    section.createEl("h3", { text: "触发时间" });
+    this.addHeading(section, "触发时间");
     this.addNumberSetting(section, "短按最大时间", "短按不移动时打开轮盘，单位毫秒。", 80, 1200, this.plugin.settings.floatingButton.gesture.tapMaxMs, async (value) => {
       this.plugin.settings.floatingButton.gesture.tapMaxMs = value;
       await this.plugin.saveSettingsAndRefresh();
@@ -175,7 +178,7 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
       await this.plugin.saveSettingsAndRefresh();
     });
 
-    section.createEl("h3", { text: "颜色与透明度设置" });
+    this.addHeading(section, "颜色与透明度设置");
     const colorGrid = section.createDiv({ cls: "obsidian-quicker-color-grid" });
     this.renderFloatingColorCard(colorGrid, "default", "默认", "空闲");
     this.renderFloatingColorCard(colorGrid, "tap", "短按", "打开轮盘");
@@ -185,7 +188,7 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
 
   private renderFloatingActionSettings(): void {
     const section = this.containerEl.createDiv({ cls: "obsidian-quicker-settings-section obsidian-quicker-floating-action-settings" });
-    section.createEl("h2", { text: "悬浮窗动作管理" });
+    this.addHeading(section, "悬浮窗动作管理");
     const commands = listObsidianCommands(this.app);
     const files = listObsidianMarkdownFiles(this.app);
     this.renderFloatingDirectionPanel(section, commands, files);
@@ -195,7 +198,7 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
     const section = this.containerEl.createDiv({ cls: "obsidian-quicker-settings-section obsidian-quicker-other-settings" });
     const support = section.createDiv({ cls: "obsidian-quicker-support-card" });
     const text = support.createDiv({ cls: "obsidian-quicker-support-copy" });
-    text.createEl("h2", { text: "反馈、帮助、支持插件" });
+    this.addHeading(text, "反馈、帮助、支持插件");
     text.createDiv({
       cls: "setting-item-description",
       text: "查看使用帮助、提交反馈，或支持 Quicker Wheel 的持续开发。"
@@ -248,7 +251,7 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
     this.addSmallButton(buttons, "🗑", "删除动作", () => this.deleteSelectedAction());
     this.addSmallButton(buttons, "↑", "上移", () => this.moveSelectedAction(-1));
 
-    preview.createEl("h2", { text: "轮盘预览" });
+    this.addHeading(preview, "轮盘预览");
     const wheelHost = preview.createDiv({ cls: "obsidian-quicker-settings-preview-wheel" });
     renderWheelPreview(wheelHost, this.plugin.settings, {
       interactive: false,
@@ -285,7 +288,7 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
   private renderActionEditor(container: HTMLElement): void {
     const action = this.selectedAction;
     const editor = container.createDiv({ cls: "obsidian-quicker-action-editor" });
-    editor.createEl("h3", { text: "动作编辑" });
+    this.addHeading(editor, "动作编辑");
 
     if (!action) {
       editor.createDiv({ cls: "setting-item-description", text: "选择一个动作，或点击轮盘空格创建动作。" });
@@ -412,10 +415,12 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
       cls: "mod-cta obsidian-quicker-save-action-button",
       text: "保存动作"
     });
-    saveButton.addEventListener("click", async () => {
-      await this.plugin.saveSettingsAndRefresh();
-      new Notice(getActionSavedNotice(action.label));
-      this.display();
+    saveButton.addEventListener("click", () => {
+      void (async () => {
+        await this.plugin.saveSettingsAndRefresh();
+        new Notice(getActionSavedNotice(action.label));
+        this.display();
+      })();
     });
   }
 

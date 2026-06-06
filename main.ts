@@ -29,20 +29,20 @@ export default class ObsidianQuickerPlugin extends Plugin {
     await this.loadSettings();
 
     this.addCommand({
-      id: "open-quicker-wheel",
-      name: "打开 Quicker Wheel 轮盘",
+      id: "open-wheel",
+      name: "打开轮盘",
       callback: () => this.openWheel()
     });
 
     this.addCommand({
       id: "toggle-floating-button",
-      name: "开关 Quicker Wheel 悬浮按钮",
+      name: "开关悬浮按钮",
       callback: () => this.toggleFloatingButton()
     });
 
     this.addCommand({
-      id: "open-quicker-settings",
-      name: "打开 Quicker Wheel 设置",
+      id: "open-settings",
+      name: "打开插件设置",
       callback: () => this.openPluginSettings()
     });
 
@@ -87,7 +87,8 @@ export default class ObsidianQuickerPlugin extends Plugin {
   }
 
   async loadSettings(): Promise<void> {
-    this.settings = normalizeSettings(await this.loadData());
+    const savedData: unknown = await this.loadData();
+    this.settings = normalizeSettings(savedData);
     await this.saveData(this.settings);
   }
 
@@ -156,7 +157,7 @@ export default class ObsidianQuickerPlugin extends Plugin {
   }
 
   private openFileByPath(path: string): boolean {
-    const file = this.app.vault.getFileByPath(path);
+    const file = this.app.vault.getAbstractFileByPath(path);
     if (!(file instanceof TFile)) {
       return false;
     }

@@ -99,10 +99,10 @@ type DeepPartial<T> = {
       : T[Key];
 };
 
-type SettingsInput = DeepPartial<ObsidianQuickerSettings> | null | undefined;
+type SettingsInput = DeepPartial<ObsidianQuickerSettings>;
 
-export function normalizeSettings(input: SettingsInput): ObsidianQuickerSettings {
-  const source = input ?? {};
+export function normalizeSettings(input: unknown): ObsidianQuickerSettings {
+  const source: SettingsInput = isRecord(input) ? input : {};
   const wheel = source.wheel ?? {};
   const floatingButton = source.floatingButton ?? {};
   const floatingGesture = floatingButton.gesture ?? {};
@@ -176,12 +176,12 @@ export function normalizeSettings(input: SettingsInput): ObsidianQuickerSettings
       colors: normalizeFloatingColors(floatingColors),
       opacity: normalizeFloatingOpacity(floatingOpacity)
     },
-    actions: normalizeActions(
-      source.actions as WheelAction[] | undefined,
-      normalizedWheel.ringCount,
-      normalizedWheel.slotsPerRing
-    )
+    actions: normalizeActions(source.actions, normalizedWheel.ringCount, normalizedWheel.slotsPerRing)
   };
+}
+
+function isRecord(value: unknown): value is SettingsInput {
+  return typeof value === "object" && value !== null;
 }
 
 function normalizeFloatingOpacity(input: Partial<FloatingButtonOpacity>): FloatingButtonOpacity {
@@ -212,24 +212,41 @@ function normalizeHexColor(value: string | undefined, fallback: string): string 
 }
 
 function createEmptyDirectionCommands(): FloatingDirectionCommandMap {
-  return Object.fromEntries(FLOATING_DIRECTIONS.map((direction) => [direction, ""])) as FloatingDirectionCommandMap;
+  return {
+    up: "",
+    "up-right": "",
+    right: "",
+    "down-right": "",
+    down: "",
+    "down-left": "",
+    left: "",
+    "up-left": ""
+  };
 }
 
 function createEmptyDirectionActions(): FloatingDirectionActionMap {
-  return Object.fromEntries(
-    FLOATING_DIRECTIONS.map((direction) => [
-      direction,
-      {
-        type: "command",
-        actionId: "",
-        commandId: "",
-        filePath: "",
-        uri: "",
-        script: "",
-        enabled: true
-      }
-    ])
-  ) as FloatingDirectionActionMap;
+  return {
+    up: createEmptyDirectionAction(),
+    "up-right": createEmptyDirectionAction(),
+    right: createEmptyDirectionAction(),
+    "down-right": createEmptyDirectionAction(),
+    down: createEmptyDirectionAction(),
+    "down-left": createEmptyDirectionAction(),
+    left: createEmptyDirectionAction(),
+    "up-left": createEmptyDirectionAction()
+  };
+}
+
+function createEmptyDirectionAction(): FloatingDirectionAction {
+  return {
+    type: "command",
+    actionId: "",
+    commandId: "",
+    filePath: "",
+    uri: "",
+    script: "",
+    enabled: true
+  };
 }
 
 function normalizeDirectionActions(

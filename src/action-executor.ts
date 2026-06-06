@@ -1,4 +1,4 @@
-import type { FloatingDirectionAction, WheelAction, WheelActionType } from "./types";
+import type { FloatingDirectionAction, WheelAction } from "./types";
 
 export interface ActionExecutionContext {
   executeCommandById(commandId: string): boolean;
@@ -86,7 +86,7 @@ export function executeFloatingDirectionAction(
     id: "floating-direction",
     label: "方向动作",
     icon: "→",
-    type: action.type as WheelActionType,
+    type: action.type,
     ringIndex: 0,
     slotIndex: 0
   };
