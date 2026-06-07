@@ -32,6 +32,14 @@ The plugin is designed for fast touch-first workflows: tap the floating button t
 - 悬浮窗动作可以直接复用已有轮盘动作。
 - 支持调整轮盘大小、圈数、格数、文字大小、透明度、颜色和触发时间。
 
+<img width="815" height="691" alt="image" src="https://github.com/user-attachments/assets/41b975da-4feb-416a-ab62-7b4c60afcd78" />
+
+<img width="764" height="617" alt="image" src="https://github.com/user-attachments/assets/51eb63ef-924f-48f1-8c97-a4a30eab43af" />
+
+<img width="789" height="903" alt="image" src="https://github.com/user-attachments/assets/fd67091d-f7b4-4cf0-adee-b4785b0c9c34" />
+
+
+
 ## 安装方式
 
 ### 方式一：使用 BRAT 安装
