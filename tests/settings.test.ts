@@ -97,6 +97,60 @@ describe("normalizeSettings", () => {
     expect(second.actions[0].label).toBe(DEFAULT_SETTINGS.actions[0].label);
   });
 
+  test("migrates built-in default action icons away from emoji and text fallbacks", () => {
+    const settings = normalizeSettings({
+      actions: [
+        {
+          id: "command-palette",
+          label: "命令",
+          icon: "CMD",
+          type: "command",
+          commandId: "command-palette:open",
+          enabled: true,
+          ringIndex: 0,
+          slotIndex: 0
+        },
+        {
+          id: "quick-switcher",
+          label: "切换",
+          icon: "🔎",
+          type: "command",
+          commandId: "switcher:open",
+          enabled: true,
+          ringIndex: 0,
+          slotIndex: 1
+        },
+        {
+          id: "new-note",
+          label: "新建",
+          icon: "＋",
+          type: "command",
+          commandId: "file-explorer:new-file",
+          enabled: true,
+          ringIndex: 0,
+          slotIndex: 2
+        },
+        {
+          id: "settings",
+          label: "设置",
+          icon: "SET",
+          type: "command",
+          commandId: "app:open-settings",
+          enabled: true,
+          ringIndex: 0,
+          slotIndex: 3
+        }
+      ]
+    });
+
+    expect(settings.actions.map((action) => action.icon)).toEqual([
+      "terminal",
+      "search",
+      "file-plus",
+      "settings"
+    ]);
+  });
+
   test("preserves existing action object references while normalizing saved settings", () => {
     const settings = normalizeSettings({
       actions: [

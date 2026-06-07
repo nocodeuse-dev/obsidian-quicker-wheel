@@ -139,6 +139,12 @@
   white-space: nowrap;
 }
 
+.obsidian-quicker-wheel-icon svg {
+  height: calc(var(--quicker-text-size) + 10px);
+  stroke: currentColor;
+  width: calc(var(--quicker-text-size) + 10px);
+}
+
 .obsidian-quicker-wheel-text {
   max-width: min(74px, calc(var(--quicker-wheel-size) / 5));
   overflow: hidden;
@@ -188,8 +194,17 @@
 }
 
 .obsidian-quicker-floating-symbol {
+  align-items: center;
+  display: flex;
+  justify-content: center;
   position: relative;
   z-index: 1;
+}
+
+.obsidian-quicker-floating-symbol svg {
+  height: 24px;
+  stroke: currentColor;
+  width: 24px;
 }
 
 .obsidian-quicker-floating-arrow {
@@ -297,6 +312,12 @@
   height: 30px;
   justify-content: center;
   width: 30px;
+}
+
+.obsidian-quicker-action-item-icon svg {
+  height: 22px;
+  stroke: currentColor;
+  width: 22px;
 }
 
 .obsidian-quicker-action-item-body {
@@ -458,6 +479,13 @@
   justify-content: center;
   place-self: center;
   width: 72px;
+}
+
+.obsidian-quicker-wheel-center svg,
+.obsidian-quicker-direction-center svg {
+  height: 28px;
+  stroke: currentColor;
+  width: 28px;
 }
 
 .obsidian-quicker-direction-arrow {

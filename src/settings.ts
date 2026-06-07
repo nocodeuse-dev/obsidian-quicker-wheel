@@ -14,7 +14,7 @@ const DEFAULT_ACTIONS: WheelAction[] = [
   {
     id: "command-palette",
     label: "命令",
-    icon: "⌘",
+    icon: "terminal",
     type: "command",
     commandId: "command-palette:open",
     enabled: true,
@@ -24,7 +24,7 @@ const DEFAULT_ACTIONS: WheelAction[] = [
   {
     id: "quick-switcher",
     label: "切换",
-    icon: "🔎",
+    icon: "search",
     type: "command",
     commandId: "switcher:open",
     enabled: true,
@@ -34,7 +34,7 @@ const DEFAULT_ACTIONS: WheelAction[] = [
   {
     id: "new-note",
     label: "新建",
-    icon: "＋",
+    icon: "file-plus",
     type: "command",
     commandId: "file-explorer:new-file",
     enabled: true,
@@ -44,7 +44,7 @@ const DEFAULT_ACTIONS: WheelAction[] = [
   {
     id: "settings",
     label: "设置",
-    icon: "⚙",
+    icon: "settings",
     type: "command",
     commandId: "app:open-settings",
     enabled: true,
@@ -52,6 +52,13 @@ const DEFAULT_ACTIONS: WheelAction[] = [
     slotIndex: 3
   }
 ];
+
+const LEGACY_DEFAULT_ACTION_ICONS: Record<string, string[]> = {
+  "command-palette": ["⌘", "CMD"],
+  "quick-switcher": ["🔎", "SW"],
+  "new-note": ["＋", "+"],
+  settings: ["⚙", "SET"]
+};
 
 export const DEFAULT_SETTINGS: ObsidianQuickerSettings = {
   wheel: {
@@ -308,7 +315,7 @@ export function createBlankAction(ringIndex: number, slotIndex: number): WheelAc
   return {
     id: `action-${suffix}`,
     label: "新动作",
-    icon: "★",
+    icon: "star",
     type: "command",
     commandId: "",
     filePath: "",
@@ -358,6 +365,7 @@ function normalizeAction(
   action.id = stringOr(action.id, `action-${index}`);
   action.label = stringOr(action.label, "未命名");
   action.icon = stringOr(action.icon, "•");
+  action.icon = migrateLegacyDefaultActionIcon(action.id, action.icon);
   action.type =
     action.type === "file" || action.type === "uri" || action.type === "script"
       ? action.type
@@ -371,6 +379,17 @@ function normalizeAction(
   action.slotIndex = clampInteger(action.slotIndex, 0, slotsPerRing - 1, index % slotsPerRing);
 
   return action;
+}
+
+function migrateLegacyDefaultActionIcon(actionId: string, icon: string): string {
+  const legacyIcons = LEGACY_DEFAULT_ACTION_ICONS[actionId];
+  const defaultAction = DEFAULT_ACTIONS.find((action) => action.id === actionId);
+
+  if (!legacyIcons || !defaultAction) {
+    return icon;
+  }
+
+  return legacyIcons.includes(icon) ? defaultAction.icon : icon;
 }
 
 function clampInteger(

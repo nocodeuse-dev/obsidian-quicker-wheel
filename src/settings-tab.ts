@@ -19,6 +19,7 @@ import {
   FLOATING_DIRECTION_LABELS,
   FLOATING_DIRECTIONS
 } from "./floating-gesture";
+import { DEFAULT_CENTER_ICON, renderConfiguredIcon } from "./icons";
 import type { ObsidianCommand } from "./obsidian-commands";
 import { createBlankAction } from "./settings";
 import { renderWheelPreview } from "./wheel-modal";
@@ -249,7 +250,10 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
     for (const action of this.filteredActions()) {
       const item = list.createDiv({ cls: "obsidian-quicker-action-item" });
       item.toggleClass("is-selected", action.id === this.selectedActionId);
-      item.createDiv({ cls: "obsidian-quicker-action-item-icon", text: action.icon });
+      renderConfiguredIcon(
+        item.createDiv({ cls: "obsidian-quicker-action-item-icon" }),
+        action.icon
+      );
       const body = item.createDiv({ cls: "obsidian-quicker-action-item-body" });
       body.createDiv({ cls: "obsidian-quicker-action-item-label", text: action.label });
       body.createDiv({
@@ -323,7 +327,7 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
 
     new Setting(editor)
       .setName("图标")
-      .setDesc("可以填写 emoji 或短文本。")
+      .setDesc("填写 Obsidian 图标名称、SVG，或短文本。建议移动端优先使用图标名称。")
       .addText((text) =>
         text.setValue(action.icon).onChange(async (value) => {
           action.icon = value || "•";
@@ -632,7 +636,11 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
   ): void {
     const panel = container.createDiv({ cls: "obsidian-quicker-direction-panel" });
     const map = panel.createDiv({ cls: "obsidian-quicker-direction-map" });
-    map.createDiv({ cls: "obsidian-quicker-direction-center", text: "⌁" });
+    renderConfiguredIcon(
+      map.createDiv({ cls: "obsidian-quicker-direction-center" }),
+      DEFAULT_CENTER_ICON,
+      "Q"
+    );
 
     for (const direction of FLOATING_DIRECTIONS) {
       this.renderFloatingDirectionButton(map, direction);

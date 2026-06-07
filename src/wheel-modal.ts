@@ -3,6 +3,11 @@ import type { App } from "obsidian";
 import { executeWheelAction } from "./action-executor";
 import { shouldCloseWheelFromPointerTarget } from "./dom-events";
 import { executeObsidianCommand } from "./obsidian-commands";
+import {
+  DEFAULT_CENTER_ICON,
+  DEFAULT_EMPTY_SLOT_ICON,
+  renderConfiguredIcon
+} from "./icons";
 import { getWheelSlotActivation } from "./wheel-interaction";
 import {
   buildWheelSlots,
@@ -188,18 +193,25 @@ export function renderWheelPreview(
     });
 
     if (action) {
-      label.createDiv({ cls: "obsidian-quicker-wheel-icon", text: action.icon });
+      renderConfiguredIcon(
+        label.createDiv({ cls: "obsidian-quicker-wheel-icon" }),
+        action.icon
+      );
       label.createDiv({ cls: "obsidian-quicker-wheel-text", text: action.label });
     } else {
-      label.createDiv({ cls: "obsidian-quicker-wheel-icon", text: "＋" });
+      renderConfiguredIcon(
+        label.createDiv({ cls: "obsidian-quicker-wheel-icon" }),
+        DEFAULT_EMPTY_SLOT_ICON,
+        "+"
+      );
       label.createDiv({ cls: "obsidian-quicker-wheel-text", text: "空" });
     }
   }
 
   const centerButton = wrapper.createDiv({
-    cls: "obsidian-quicker-wheel-center",
-    text: "⌁"
+    cls: "obsidian-quicker-wheel-center"
   });
+  renderConfiguredIcon(centerButton, DEFAULT_CENTER_ICON, "Q");
   centerButton.addEventListener("click", (event) => {
     event.stopPropagation();
     options.onCenterClick?.();

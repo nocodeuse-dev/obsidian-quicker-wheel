@@ -4,6 +4,7 @@ import {
   getFloatingGestureIntent
 } from "./floating-gesture";
 import { hexToRgba } from "./color";
+import { DEFAULT_CENTER_ICON, renderConfiguredIcon } from "./icons";
 import type {
   FloatingButtonColors,
   FloatingButtonOpacity,
@@ -62,7 +63,11 @@ export class FloatingWheelButton {
     button.type = "button";
     button.addClass("obsidian-quicker-floating-button");
     button.setAttr("aria-label", "打开 Quicker Wheel 轮盘");
-    button.createSpan({ cls: "obsidian-quicker-floating-symbol", text: "⌁" });
+    renderConfiguredIcon(
+      button.createSpan({ cls: "obsidian-quicker-floating-symbol" }),
+      DEFAULT_CENTER_ICON,
+      "Q"
+    );
     this.arrowEl = button.createSpan({
       cls: "obsidian-quicker-floating-arrow",
       text: "→"
