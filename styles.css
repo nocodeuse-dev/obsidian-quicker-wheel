@@ -453,7 +453,7 @@
   align-items: stretch;
   display: grid;
   gap: 16px;
-  grid-template-columns: minmax(260px, 360px) minmax(0, 1fr);
+  grid-template-columns: 1fr;
   margin-top: 10px;
 }
 
@@ -469,8 +469,10 @@
     "down-left down down-right";
   grid-template-columns: repeat(3, minmax(0, 1fr));
   grid-template-rows: repeat(3, minmax(0, 1fr));
+  margin: 0 auto;
   min-height: 320px;
   padding: 14px;
+  width: min(100%, 360px);
 }
 
 .obsidian-quicker-direction-center {
@@ -590,14 +592,19 @@
 }
 
 .obsidian-quicker-direction-editor .setting-item {
+  align-items: stretch;
   background: transparent;
   border: 0;
+  flex-direction: column;
   padding-left: 0;
   padding-right: 0;
 }
 
 .obsidian-quicker-direction-editor .setting-item-control {
-  min-width: min(100%, 280px);
+  justify-content: flex-start;
+  margin-top: 10px;
+  min-width: 0;
+  width: 100%;
 }
 
 .obsidian-quicker-direction-editor-header {
@@ -619,6 +626,17 @@
 .obsidian-quicker-direction-editor-body textarea {
   max-width: 100%;
   width: 100%;
+}
+
+@media (min-width: 980px) {
+  .obsidian-quicker-direction-panel {
+    align-items: start;
+    grid-template-columns: minmax(300px, 360px) minmax(320px, 1fr);
+  }
+
+  .obsidian-quicker-direction-map {
+    margin: 0;
+  }
 }
 
 .obsidian-quicker-direction-editor-body textarea {
