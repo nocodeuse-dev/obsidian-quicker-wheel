@@ -25,9 +25,13 @@ export function renderConfiguredIcon(
   }
 
   if (isObsidianIconName(value)) {
-    setIcon(container, value);
-    if (container.childElementCount > 0) {
-      return;
+    try {
+      setIcon(container, value);
+      if (container.childElementCount > 0) {
+        return;
+      }
+    } catch {
+      container.empty();
     }
   }
 
@@ -43,15 +47,18 @@ function isObsidianIconName(value: string): boolean {
 }
 
 function createSafeSvgElement(document: Document, value: string): SVGSVGElement | null {
-  const parser = new (document.defaultView?.DOMParser ?? DOMParser)();
-  const parsed = parser.parseFromString(value, "image/svg+xml");
-  const svg = parsed.documentElement;
+  const template = document.createElement("template");
+  template.innerHTML = value.trim();
+  const svg = template.content.firstElementChild;
 
-  if (svg.localName.toLowerCase() !== "svg") {
+  if (!svg || svg.localName.toLowerCase() !== "svg") {
     return null;
   }
 
   removeUnsafeSvgContent(svg);
+  svg.classList.add("obsidian-quicker-inline-svg");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("focusable", "false");
   return document.importNode(svg, true) as unknown as SVGSVGElement;
 }
 

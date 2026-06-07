@@ -21,6 +21,8 @@ import {
 } from "./floating-gesture";
 import { DEFAULT_CENTER_ICON, renderConfiguredIcon } from "./icons";
 import type { ObsidianCommand } from "./obsidian-commands";
+import { filterObsidianFiles } from "./obsidian-files";
+import type { ObsidianFileItem } from "./obsidian-files";
 import { createBlankAction } from "./settings";
 import { renderWheelPreview } from "./wheel-modal";
 import type { WheelAction } from "./types";
@@ -33,6 +35,7 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
   private selectedActionId: string | null = null;
   private selectedDirection: FloatingGestureDirection = "up";
   private commandCache: ObsidianCommand[] | null = null;
+  private fileCache: ObsidianFileItem[] | null = null;
   private directionDrafts: Partial<Record<FloatingGestureDirection, FloatingDirectionAction>> = {};
   private query = "";
 
@@ -319,9 +322,8 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
     new Setting(editor)
       .setName("名称")
       .addText((text) =>
-        text.setValue(action.label).onChange(async (value) => {
+        text.setValue(action.label).onChange((value) => {
           action.label = value;
-          await this.plugin.saveSettingsAndRefresh();
         })
       );
 
@@ -329,9 +331,8 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
       .setName("图标")
       .setDesc("填写 Obsidian 图标名称、SVG，或短文本。建议移动端优先使用图标名称。")
       .addText((text) =>
-        text.setValue(action.icon).onChange(async (value) => {
+        text.setValue(action.icon).onChange((value) => {
           action.icon = value || "•";
-          await this.plugin.saveSettingsAndRefresh();
         })
       );
 
@@ -354,9 +355,8 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
           .addOption("uri", "URI（预留）")
           .addOption("script", "脚本（预留）")
           .setValue(action.type)
-          .onChange(async (value) => {
+          .onChange((value) => {
             action.type = value as WheelAction["type"];
-            await this.plugin.saveSettingsAndRefresh();
             this.display();
           })
       );
@@ -369,19 +369,17 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
           text
             .setPlaceholder("搜索命令或输入 command id")
             .setValue(getCommandInputDisplayValue(this.getCommands(), action.commandId))
-            .onChange(async (value) => {
+            .onChange((value) => {
               action.commandId = this.resolveCommandInputValue(value);
-              await this.plugin.saveSettingsAndRefresh();
             });
 
         new CommandInputSuggest(
           this.app,
           text.inputEl,
           this.getCommands(),
-          async (command) => {
+          (command) => {
             action.commandId = command.id;
             text.setValue(command.name);
-            await this.plugin.saveSettingsAndRefresh();
           }
         );
         });
@@ -395,15 +393,19 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
           text
             .setPlaceholder("搜索文件或输入文件路径")
             .setValue(action.filePath ?? "")
-            .onChange(async (value) => {
+            .onChange((value) => {
               action.filePath = value.trim();
-              await this.plugin.saveSettingsAndRefresh();
             });
+
+          new FilePathInputSuggest(this.app, text.inputEl, () => this.getFiles(), (file) => {
+            action.filePath = file.path;
+            text.setValue(file.path);
+          });
         })
         .addButton((button) =>
           button
             .setButtonText("使用当前文件")
-            .onClick(async () => {
+            .onClick(() => {
               const activePath = this.getActiveFilePath();
               if (!activePath) {
                 new Notice("当前没有打开的 Markdown 文件");
@@ -411,7 +413,6 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
               }
               action.filePath = activePath;
               fileInput?.setValue(activePath);
-              await this.plugin.saveSettingsAndRefresh();
             })
         );
     } else if (action.type === "uri") {
@@ -419,9 +420,8 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
         .setName("URI")
         .setDesc("可先保存，执行能力将在后续版本继续增强。")
         .addText((text) =>
-          text.setValue(action.uri ?? "").onChange(async (value) => {
+          text.setValue(action.uri ?? "").onChange((value) => {
             action.uri = value;
-            await this.plugin.saveSettingsAndRefresh();
           })
         );
     } else {
@@ -429,9 +429,8 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
         .setName("脚本")
         .setDesc("脚本动作预留字段，当前版本不会执行。")
         .addTextArea((text) =>
-          text.setValue(action.script ?? "").onChange(async (value) => {
+          text.setValue(action.script ?? "").onChange((value) => {
             action.script = value;
-            await this.plugin.saveSettingsAndRefresh();
           })
         );
     }
@@ -630,6 +629,14 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
     return this.commandCache;
   }
 
+  private getFiles(): ObsidianFileItem[] {
+    this.fileCache ??= this.app.vault.getFiles().map((file) => ({
+      name: file.basename || file.name,
+      path: file.path
+    }));
+    return this.fileCache;
+  }
+
   private renderFloatingDirectionPanel(
     container: HTMLElement,
     commands: ObsidianCommand[]
@@ -769,17 +776,24 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
     }
 
     if (action.type === "file") {
+      let fileInput: TextComponent | null = null;
       new Setting(container)
         .setName("文件路径")
-        .setDesc("输入 vault 内文件路径。为避免移动端闪退，这里不再弹出全库文件候选。")
-        .addText((text) =>
+        .setDesc("搜索文件名，或直接输入 vault 内文件路径。")
+        .addText((text) => {
+          fileInput = text;
           text
-            .setPlaceholder("例如：Inbox/今日.md")
+            .setPlaceholder("搜索文件或输入文件路径")
             .setValue(action.filePath ?? "")
             .onChange((value) => {
               action.filePath = value.trim();
-            })
-        )
+            });
+
+          new FilePathInputSuggest(this.app, text.inputEl, () => this.getFiles(), (file) => {
+            action.filePath = file.path;
+            text.setValue(file.path);
+          });
+        })
         .addButton((button) =>
           button
             .setButtonText("使用当前文件")
@@ -790,7 +804,7 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
                 return;
               }
               action.filePath = activePath;
-              this.display();
+              fileInput?.setValue(activePath);
             })
         );
       return;
@@ -1038,6 +1052,33 @@ class CommandInputSuggest extends AbstractInputSuggest<ObsidianCommand> {
 
   selectSuggestion(command: ObsidianCommand): void {
     void this.onChooseCommand(command);
+    this.close();
+  }
+}
+
+class FilePathInputSuggest extends AbstractInputSuggest<ObsidianFileItem> {
+  constructor(
+    app: App,
+    inputEl: HTMLInputElement,
+    private readonly getFiles: () => ObsidianFileItem[],
+    private readonly onChooseFile: (file: ObsidianFileItem) => void
+  ) {
+    super(app, inputEl);
+    this.limit = 30;
+  }
+
+  protected getSuggestions(query: string): ObsidianFileItem[] {
+    return filterObsidianFiles(this.getFiles(), query, this.limit);
+  }
+
+  renderSuggestion(file: ObsidianFileItem, el: HTMLElement): void {
+    el.addClass("obsidian-quicker-command-suggestion");
+    el.createDiv({ cls: "obsidian-quicker-command-suggestion-name", text: file.name });
+    el.createDiv({ cls: "obsidian-quicker-command-suggestion-id", text: file.path });
+  }
+
+  selectSuggestion(file: ObsidianFileItem): void {
+    this.onChooseFile(file);
     this.close();
   }
 }

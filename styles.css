@@ -145,6 +145,14 @@
   width: calc(var(--quicker-text-size) + 10px);
 }
 
+.obsidian-quicker-inline-svg {
+  color: inherit;
+  display: block;
+  max-height: 100%;
+  max-width: 100%;
+  stroke: currentColor;
+}
+
 .obsidian-quicker-wheel-text {
   max-width: min(74px, calc(var(--quicker-wheel-size) / 5));
   overflow: hidden;
