@@ -28,7 +28,12 @@ export default class ObsidianQuickerPlugin extends Plugin {
   private settingTab: ObsidianQuickerSettingTab | null = null;
 
   async onload(): Promise<void> {
-    await this.loadSettings();
+    try {
+      await this.loadSettings();
+    } catch (error) {
+      console.error("Quicker Wheel failed to load settings", error);
+      this.settings = DEFAULT_SETTINGS;
+    }
 
     this.addCommand({
       id: "open-wheel",
@@ -52,7 +57,7 @@ export default class ObsidianQuickerPlugin extends Plugin {
     this.addSettingTab(this.settingTab);
     this.app.workspace.onLayoutReady(() => {
       this.isLayoutReady = true;
-      this.mountFloatingButton();
+      this.safeMountFloatingButton();
     });
   }
 
@@ -94,7 +99,6 @@ export default class ObsidianQuickerPlugin extends Plugin {
   async loadSettings(): Promise<void> {
     const savedData: unknown = await this.loadData();
     this.settings = normalizeSettings(savedData);
-    await this.saveData(this.settings);
   }
 
   async saveSettingsAndRefresh(): Promise<void> {
@@ -102,7 +106,7 @@ export default class ObsidianQuickerPlugin extends Plugin {
     this.saveQueue = this.saveQueue.then(async () => {
       await this.saveData(this.settings);
       if (this.isLayoutReady) {
-        this.mountFloatingButton();
+        this.safeMountFloatingButton();
       }
     });
     await this.saveQueue;
@@ -118,6 +122,14 @@ export default class ObsidianQuickerPlugin extends Plugin {
 
     appWithSettings.setting.open();
     appWithSettings.setting.openTabById(this.manifest.id);
+  }
+
+  private safeMountFloatingButton(): void {
+    try {
+      this.mountFloatingButton();
+    } catch (error) {
+      console.error("Quicker Wheel failed to mount floating button", error);
+    }
   }
 
   private mountFloatingButton(): void {

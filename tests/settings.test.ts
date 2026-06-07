@@ -39,6 +39,14 @@ describe("normalizeSettings", () => {
     });
   });
 
+  test("falls back to defaults for invalid stored data", () => {
+    const settings = normalizeSettings("broken");
+
+    expect(settings.wheel.ringCount).toBe(DEFAULT_SETTINGS.wheel.ringCount);
+    expect(settings.floatingButton.mobileEnabled).toBe(true);
+    expect(settings.actions.length).toBeGreaterThan(0);
+  });
+
   test("clamps unsafe numeric values and preserves known action data", () => {
     const settings = normalizeSettings({
       wheel: {

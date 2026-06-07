@@ -56,7 +56,8 @@ export class FloatingWheelButton {
       return;
     }
 
-    const button = activeDocument.createElement("button");
+    const ownerDocument = this.options.plugin.app.workspace.containerEl.ownerDocument;
+    const button = ownerDocument.createElement("button");
     button.type = "button";
     button.addClass("obsidian-quicker-floating-button");
     button.setAttr("aria-label", "打开 Quicker Wheel 轮盘");
@@ -65,7 +66,7 @@ export class FloatingWheelButton {
       cls: "obsidian-quicker-floating-arrow",
       text: "→"
     });
-    activeDocument.body.appendChild(button);
+    ownerDocument.body.appendChild(button);
     this.buttonEl = button;
     this.applyPosition();
     this.applyColor("default");
