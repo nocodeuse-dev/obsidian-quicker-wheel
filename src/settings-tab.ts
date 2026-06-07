@@ -69,6 +69,41 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
     }
   }
 
+  private rerenderPreservingScroll(): void {
+    const scrollContainer = this.getScrollContainer();
+    const scrollTop = scrollContainer?.scrollTop ?? 0;
+
+    this.display();
+
+    if (!scrollContainer) {
+      return;
+    }
+
+    const ownerWindow = this.containerEl.ownerDocument.defaultView ?? window;
+    ownerWindow.requestAnimationFrame(() => {
+      scrollContainer.scrollTop = scrollTop;
+    });
+  }
+
+  private getScrollContainer(): HTMLElement | null {
+    let element = this.containerEl.parentElement;
+
+    while (element) {
+      const style = element.ownerDocument.defaultView?.getComputedStyle(element);
+      const overflowY = style?.overflowY ?? "";
+      if (
+        element.scrollHeight > element.clientHeight &&
+        (overflowY === "auto" || overflowY === "scroll" || overflowY === "overlay")
+      ) {
+        return element;
+      }
+
+      element = element.parentElement;
+    }
+
+    return this.containerEl.parentElement;
+  }
+
   private renderActiveView(): void {
     if (this.activeView === "menu") {
       this.renderMenuSettings();
@@ -246,7 +281,7 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
     search.value = this.query;
     search.addEventListener("input", () => {
       this.query = search.value;
-      this.display();
+      this.rerenderPreservingScroll();
     });
 
     const list = sidebar.createDiv({ cls: "obsidian-quicker-action-list" });
@@ -265,7 +300,7 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
       });
       item.addEventListener("click", () => {
         this.selectedActionId = action.id;
-        this.display();
+        this.rerenderPreservingScroll();
       });
     }
 
@@ -282,8 +317,7 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
       selectedActionId: this.selectedActionId ?? undefined,
       onAction: (action) => {
         this.selectedActionId = getPreviewSelectedActionId(action);
-        this.display();
-        this.scrollActionEditorIntoView();
+        this.rerenderPreservingScroll();
       },
       onSlot: async (slot) => {
         const selected = this.selectedAction;
@@ -296,17 +330,11 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
           selected.slotIndex = slot.slotIndex;
         }
         await this.plugin.saveSettingsAndRefresh();
-        this.display();
+        this.rerenderPreservingScroll();
       }
     });
 
     this.renderActionEditor(preview);
-  }
-
-  private scrollActionEditorIntoView(): void {
-    this.containerEl
-      .querySelector(".obsidian-quicker-action-editor")
-      ?.scrollIntoView({ block: "start", behavior: "smooth" });
   }
 
   private renderActionEditor(container: HTMLElement): void {
@@ -357,7 +385,7 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
           .setValue(action.type)
           .onChange((value) => {
             action.type = value as WheelAction["type"];
-            this.display();
+            this.rerenderPreservingScroll();
           })
       );
 
@@ -444,7 +472,6 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
       void (async () => {
         await this.plugin.saveSettingsAndRefresh();
         new Notice(getActionSavedNotice(action.label));
-        this.display();
       })();
     });
   }
@@ -564,13 +591,13 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
     this.plugin.settings.actions.push(action);
     this.selectedActionId = action.id;
     await this.plugin.saveSettingsAndRefresh();
-    this.display();
+    this.rerenderPreservingScroll();
   }
 
   private focusSelectedAction(): void {
     if (!this.selectedActionId && this.plugin.settings.actions[0]) {
       this.selectedActionId = this.plugin.settings.actions[0].id;
-      this.display();
+      this.rerenderPreservingScroll();
     }
   }
 
@@ -584,7 +611,7 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
     );
     this.selectedActionId = this.plugin.settings.actions[0]?.id ?? null;
     await this.plugin.saveSettingsAndRefresh();
-    this.display();
+    this.rerenderPreservingScroll();
   }
 
   private async moveSelectedAction(delta: number): Promise<void> {
@@ -601,7 +628,7 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
     const [action] = this.plugin.settings.actions.splice(index, 1);
     this.plugin.settings.actions.splice(nextIndex, 0, action);
     await this.plugin.saveSettingsAndRefresh();
-    this.display();
+    this.rerenderPreservingScroll();
   }
 
   private filteredActions(): WheelAction[] {
@@ -681,7 +708,7 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
     });
     button.addEventListener("click", () => {
       this.selectedDirection = direction;
-      this.display();
+      this.rerenderPreservingScroll();
     });
   }
 
@@ -723,7 +750,7 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
           .setValue(action.type)
           .onChange((value) => {
             action.type = value as FloatingDirectionAction["type"];
-            this.display();
+            this.rerenderPreservingScroll();
           })
       );
 
@@ -879,7 +906,7 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
     );
     await this.plugin.saveSettingsAndRefresh();
     new Notice(`${FLOATING_DIRECTION_LABELS[direction]}滑动作已保存`);
-    this.display();
+    this.rerenderPreservingScroll();
   }
 
   private getDirectionActionSummary(action: FloatingDirectionAction): string {
