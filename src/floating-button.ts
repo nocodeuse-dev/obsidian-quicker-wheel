@@ -40,6 +40,7 @@ export class FloatingWheelButton {
   private originX = 0;
   private originY = 0;
   private windowEventsRegistered = false;
+  private activeWindow: Window | null = null;
 
   constructor(private readonly options: FloatingButtonOptions) {}
 
@@ -68,6 +69,7 @@ export class FloatingWheelButton {
     });
     ownerDocument.body.appendChild(button);
     this.buttonEl = button;
+    this.activeWindow = ownerDocument.defaultView ?? window;
     this.applyPosition();
     this.applyColor("default");
     this.hideDirectionArrow();
@@ -75,13 +77,20 @@ export class FloatingWheelButton {
     this.options.plugin.registerDomEvent(button, "pointerdown", (event: PointerEvent) =>
       this.handlePointerDown(event)
     );
+    this.options.plugin.registerDomEvent(button, "click", (event: MouseEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+    });
 
     if (!this.windowEventsRegistered) {
-      this.options.plugin.registerDomEvent(window, "pointermove", (event: PointerEvent) =>
+      this.options.plugin.registerDomEvent(this.activeWindow, "pointermove", (event: PointerEvent) =>
         this.handlePointerMove(event)
       );
-      this.options.plugin.registerDomEvent(window, "pointerup", (event: PointerEvent) =>
+      this.options.plugin.registerDomEvent(this.activeWindow, "pointerup", (event: PointerEvent) =>
         this.handlePointerUp(event)
+      );
+      this.options.plugin.registerDomEvent(this.activeWindow, "pointercancel", (event: PointerEvent) =>
+        this.handlePointerCancel(event)
       );
       this.windowEventsRegistered = true;
     }
@@ -118,6 +127,8 @@ export class FloatingWheelButton {
       return;
     }
 
+    event.preventDefault();
+    event.stopPropagation();
     this.dragging = true;
     this.moving = false;
     this.moved = false;
@@ -129,7 +140,6 @@ export class FloatingWheelButton {
     this.buttonEl.setPointerCapture(event.pointerId);
     this.applyColor("tap");
     this.hideDirectionArrow();
-    event.preventDefault();
   }
 
   private handlePointerMove(event: PointerEvent): void {
@@ -137,6 +147,8 @@ export class FloatingWheelButton {
       return;
     }
 
+    event.preventDefault();
+    event.stopPropagation();
     const deltaX = event.clientX - this.startX;
     const deltaY = event.clientY - this.startY;
     const elapsedMs = Date.now() - this.pointerDownAt;
@@ -158,14 +170,14 @@ export class FloatingWheelButton {
     this.moving = true;
     this.applyColor("move");
     this.hideDirectionArrow();
-    const nextX = clamp(this.originX + event.clientX - this.startX, 8, window.innerWidth - 56);
-    const nextY = clamp(this.originY + event.clientY - this.startY, 8, window.innerHeight - 56);
+    const viewport = this.activeWindow ?? window;
+    const nextX = clamp(this.originX + event.clientX - this.startX, 8, viewport.innerWidth - 56);
+    const nextY = clamp(this.originY + event.clientY - this.startY, 8, viewport.innerHeight - 56);
     this.moved = this.moved || Math.abs(nextX - this.originX) > 4 || Math.abs(nextY - this.originY) > 4;
     this.options.settings.x = nextX;
     this.options.settings.y = nextY;
     this.buttonEl.style.left = `${nextX}px`;
     this.buttonEl.style.top = `${nextY}px`;
-    event.preventDefault();
   }
 
   private async handlePointerUp(event: PointerEvent): Promise<void> {
@@ -173,8 +185,12 @@ export class FloatingWheelButton {
       return;
     }
 
+    event.preventDefault();
+    event.stopPropagation();
     this.dragging = false;
-    this.buttonEl.releasePointerCapture(event.pointerId);
+    if (this.buttonEl.hasPointerCapture(event.pointerId)) {
+      this.buttonEl.releasePointerCapture(event.pointerId);
+    }
 
     if (this.moving && this.moved) {
       await this.options.onMove(this.options.settings.x, this.options.settings.y);
@@ -201,6 +217,23 @@ export class FloatingWheelButton {
 
     if (intent.type === "open-wheel") {
       this.options.onOpen();
+    }
+    this.applyColor("default");
+    this.hideDirectionArrow();
+  }
+
+  private handlePointerCancel(event: PointerEvent): void {
+    if (!this.dragging || !this.buttonEl) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    this.dragging = false;
+    this.moving = false;
+    this.moved = false;
+    if (this.buttonEl.hasPointerCapture(event.pointerId)) {
+      this.buttonEl.releasePointerCapture(event.pointerId);
     }
     this.applyColor("default");
     this.hideDirectionArrow();

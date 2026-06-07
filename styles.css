@@ -8,8 +8,15 @@
   justify-content: center;
   max-height: none;
   max-width: none;
+  overscroll-behavior: contain;
   padding: 0;
+  touch-action: none;
   width: 100vw;
+}
+
+.obsidian-quicker-modal-container {
+  overscroll-behavior: contain;
+  touch-action: none;
 }
 
 .obsidian-quicker-modal .modal-close-button {
@@ -34,8 +41,10 @@
   justify-content: center;
   max-height: 100vh;
   max-width: 100vw;
+  overscroll-behavior: contain;
   overflow: visible;
   padding: 0;
+  touch-action: none;
 }
 
 @supports (height: 100dvh) {
@@ -54,6 +63,7 @@
   height: var(--quicker-wheel-size);
   overflow: visible;
   position: relative;
+  touch-action: none;
   width: var(--quicker-wheel-size);
 }
 
@@ -104,6 +114,7 @@
   pointer-events: auto;
   position: absolute;
   text-align: center;
+  touch-action: none;
   transform: translate(-50%, -50%);
   user-select: none;
 }
@@ -151,6 +162,7 @@
   left: 50%;
   position: absolute;
   top: 50%;
+  touch-action: none;
   transform: translate(-50%, -50%);
   user-select: none;
   width: 15%;

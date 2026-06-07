@@ -26,9 +26,14 @@ export class QuickerWheelModal extends Modal {
   }
 
   onOpen(): void {
+    this.containerEl.addClass("obsidian-quicker-modal-container");
     this.modalEl.addClass("obsidian-quicker-modal");
     this.contentEl.empty();
     this.contentEl.addClass("obsidian-quicker-wheel-host");
+    this.contentEl.addEventListener("touchmove", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+    });
     this.contentEl.addEventListener("click", (event) => {
       if (shouldCloseWheelFromPointerTarget(event.target, this.contentEl)) {
         this.close();
