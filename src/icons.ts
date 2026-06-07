@@ -1,4 +1,5 @@
 import { setIcon } from "obsidian";
+import { getSvgIconMarkup } from "./svg-icons";
 
 export const DEFAULT_EMPTY_SLOT_ICON = "plus";
 export const DEFAULT_CENTER_ICON = "zap";
@@ -16,8 +17,9 @@ export function renderConfiguredIcon(
     return;
   }
 
-  if (isSvgIcon(value)) {
-    const svg = createSafeSvgElement(container.ownerDocument, value);
+  const svgMarkup = getSvgIconMarkup(value);
+  if (svgMarkup) {
+    const svg = createSafeSvgElement(container.ownerDocument, svgMarkup);
     if (svg) {
       container.appendChild(svg);
       return;
@@ -36,10 +38,6 @@ export function renderConfiguredIcon(
   }
 
   container.setText(value);
-}
-
-function isSvgIcon(value: string): boolean {
-  return value.trimStart().toLowerCase().startsWith("<svg");
 }
 
 function isObsidianIconName(value: string): boolean {
