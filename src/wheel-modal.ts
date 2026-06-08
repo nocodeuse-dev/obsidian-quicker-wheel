@@ -101,6 +101,101 @@ export class QuickerWheelModal extends Modal {
   }
 }
 
+export class AndroidQuickerWheelOverlay {
+  private closeTimer: number | null = null;
+  private overlayEl: HTMLElement | null = null;
+  private readonly openedAt = Date.now();
+
+  constructor(
+    private readonly app: App,
+    private readonly settings: ObsidianQuickerSettings,
+    private readonly onEmptySlot?: (slot: WheelSlot) => void | Promise<void>
+  ) {}
+
+  open(): void {
+    const activeDocument = this.app.workspace.containerEl.ownerDocument;
+    const overlay = activeDocument.body.createDiv({
+      cls: "obsidian-quicker-android-overlay obsidian-quicker-wheel-host"
+    });
+    this.overlayEl = overlay;
+    overlay.addEventListener("touchmove", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+    });
+    overlay.addEventListener("click", (event) => {
+      if (Date.now() - this.openedAt < 300) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+
+      if (shouldCloseWheelFromPointerTarget(event.target, overlay)) {
+        this.close();
+      }
+    });
+    this.renderWheel(overlay, this.settings, (action) => this.executeAction(action));
+
+    if (this.settings.wheel.timeoutMs > 0) {
+      this.closeTimer = activeDocument.defaultView?.setTimeout(
+        () => this.close(),
+        this.settings.wheel.timeoutMs
+      ) ?? null;
+    }
+  }
+
+  close(): void {
+    if (this.closeTimer !== null) {
+      const activeWindow = this.overlayEl?.ownerDocument.defaultView ?? window;
+      activeWindow.clearTimeout(this.closeTimer);
+      this.closeTimer = null;
+    }
+
+    this.overlayEl?.remove();
+    this.overlayEl = null;
+  }
+
+  private executeAction(action: WheelAction): void {
+    const result = executeWheelAction(action, {
+      executeCommandById: (commandId) => executeObsidianCommand(this.app, commandId),
+      openFileByPath: (path) => this.openFileByPath(path),
+      openUri: (uri) => window.open(uri, "_blank")
+    });
+
+    if (!result.ok) {
+      new Notice(result.message ?? "动作执行失败");
+      return;
+    }
+
+    this.close();
+  }
+
+  private openFileByPath(path: string): boolean {
+    const file = this.app.vault.getAbstractFileByPath(path);
+    if (!(file instanceof TFile)) {
+      return false;
+    }
+
+    void this.app.workspace.getLeaf(false).openFile(file);
+    return true;
+  }
+
+  private renderWheel(
+    container: HTMLElement,
+    settings: ObsidianQuickerSettings,
+    onAction: (action: WheelAction) => void
+  ): void {
+    renderWheelPreview(container, settings, {
+      interactive: true,
+      onAction,
+      onSlot: (slot) => {
+        this.close();
+        void this.onEmptySlot?.(slot);
+      },
+      onCenterClick: () => this.close()
+    });
+  }
+}
+
 interface RenderWheelOptions {
   interactive: boolean;
   selectedActionId?: string;

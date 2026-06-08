@@ -11,7 +11,7 @@ import type { ObsidianQuickerSettings } from "./src/types";
 import type { WheelSlot } from "./src/types";
 import type { FloatingGestureDirection } from "./src/types";
 import { executeObsidianCommand } from "./src/obsidian-commands";
-import { QuickerWheelModal } from "./src/wheel-modal";
+import { AndroidQuickerWheelOverlay, QuickerWheelModal } from "./src/wheel-modal";
 
 type AppWithSettings = typeof Plugin.prototype.app & {
   setting?: {
@@ -67,6 +67,13 @@ export default class ObsidianQuickerPlugin extends Plugin {
   }
 
   openWheel(): void {
+    if (Platform.isAndroidApp) {
+      new AndroidQuickerWheelOverlay(this.app, this.settings, (slot) =>
+        this.createActionFromWheelSlot(slot)
+      ).open();
+      return;
+    }
+
     new QuickerWheelModal(this.app, this.settings, (slot) =>
       this.createActionFromWheelSlot(slot)
     ).open();

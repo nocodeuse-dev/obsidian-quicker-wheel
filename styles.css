@@ -47,6 +47,22 @@
   touch-action: none;
 }
 
+.obsidian-quicker-android-overlay {
+  background: transparent;
+  bottom: 0;
+  box-sizing: border-box;
+  height: 100vh;
+  left: 0;
+  max-height: none;
+  max-width: none;
+  padding: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  width: 100vw;
+  z-index: var(--layer-modal);
+}
+
 @supports (height: 100dvh) {
   .modal.obsidian-quicker-modal,
   .obsidian-quicker-modal.mod-modal {
@@ -55,6 +71,10 @@
 
   .obsidian-quicker-wheel-host {
     max-height: 100dvh;
+  }
+
+  .obsidian-quicker-android-overlay {
+    height: 100dvh;
   }
 }
 
