@@ -15,6 +15,10 @@ describe("normalizeSettings", () => {
     expect(settings.wheel.textSize).toBe(11);
     expect(settings.wheel.timeoutMs).toBe(20000);
     expect(settings.wheel.opacity).toBe(100);
+    expect(settings.wheel.appearance.theme).toBe("soft");
+    expect(settings.wheel.appearance.segmentColor).toBe("#ffffff");
+    expect(settings.wheel.appearance.actionSegmentColor).toBe("#f2edff");
+    expect(settings.wheel.appearance.emptySlotDisplay).toBe("full");
     expect(settings.floatingButton.mobileEnabled).toBe(true);
     expect(settings.floatingButton.desktopEnabled).toBe(true);
     expect(settings.floatingButton.gesture.tapMaxMs).toBe(260);
@@ -55,7 +59,21 @@ describe("normalizeSettings", () => {
         size: 100,
         textSize: 40,
         timeoutMs: 100,
-        opacity: 1
+        opacity: 1,
+        appearance: {
+          theme: "broken",
+          segmentColor: "#123456",
+          actionSegmentColor: "bad",
+          emptySegmentColor: "#abcdef",
+          highlightColor: "#ABCDEF",
+          dividerColor: "#123",
+          dividerWidth: 99,
+          centerColor: "#654321",
+          centerIconColor: "nope",
+          centerSize: 99,
+          shadow: "wild",
+          emptySlotDisplay: "gone"
+        }
       },
       actions: [
         {
@@ -77,7 +95,21 @@ describe("normalizeSettings", () => {
       size: 240,
       textSize: 24,
       timeoutMs: 1000,
-      opacity: 20
+      opacity: 20,
+      appearance: {
+        theme: DEFAULT_SETTINGS.wheel.appearance.theme,
+        segmentColor: "#123456",
+        actionSegmentColor: DEFAULT_SETTINGS.wheel.appearance.actionSegmentColor,
+        emptySegmentColor: "#abcdef",
+        highlightColor: "#abcdef",
+        dividerColor: DEFAULT_SETTINGS.wheel.appearance.dividerColor,
+        dividerWidth: 4,
+        centerColor: "#654321",
+        centerIconColor: DEFAULT_SETTINGS.wheel.appearance.centerIconColor,
+        centerSize: 24,
+        shadow: DEFAULT_SETTINGS.wheel.appearance.shadow,
+        emptySlotDisplay: DEFAULT_SETTINGS.wheel.appearance.emptySlotDisplay
+      }
     });
     expect(settings.actions[0]).toMatchObject({
       id: "custom",

@@ -1,7 +1,7 @@
 {
   "id": "quicker-wheel",
   "name": "Quicker Wheel",
-  "version": "0.1.39",
+  "version": "0.1.40",
   "minAppVersion": "1.5.0",
   "description": "A mobile-friendly Quicker-style radial command wheel.",
   "author": "nocodeuse",

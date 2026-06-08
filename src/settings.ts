@@ -67,7 +67,21 @@ export const DEFAULT_SETTINGS: ObsidianQuickerSettings = {
     size: 340,
     textSize: 11,
     timeoutMs: 20000,
-    opacity: 100
+    opacity: 100,
+    appearance: {
+      theme: "soft",
+      segmentColor: "#ffffff",
+      actionSegmentColor: "#f2edff",
+      emptySegmentColor: "#ffffff",
+      highlightColor: "#c4b5fd",
+      dividerColor: "#ded8ea",
+      dividerWidth: 1,
+      centerColor: "#ffffff",
+      centerIconColor: "#7c3aed",
+      centerSize: 15,
+      shadow: "soft",
+      emptySlotDisplay: "full"
+    }
   },
   floatingButton: {
     mobileEnabled: true,
@@ -111,6 +125,7 @@ type SettingsInput = DeepPartial<ObsidianQuickerSettings>;
 export function normalizeSettings(input: unknown): ObsidianQuickerSettings {
   const source: SettingsInput = isRecord(input) ? input : {};
   const wheel = source.wheel ?? {};
+  const wheelAppearance = wheel.appearance ?? {};
   const floatingButton = source.floatingButton ?? {};
   const floatingGesture = floatingButton.gesture ?? {};
   const floatingColors = floatingButton.colors ?? {};
@@ -127,7 +142,67 @@ export function normalizeSettings(input: unknown): ObsidianQuickerSettings {
     size: clampInteger(wheel.size, 240, 720, DEFAULT_SETTINGS.wheel.size),
     textSize: clampInteger(wheel.textSize, 8, 24, DEFAULT_SETTINGS.wheel.textSize),
     timeoutMs: clampInteger(wheel.timeoutMs, 1000, 60000, DEFAULT_SETTINGS.wheel.timeoutMs),
-    opacity: clampInteger(wheel.opacity, 20, 100, DEFAULT_SETTINGS.wheel.opacity)
+    opacity: clampInteger(wheel.opacity, 20, 100, DEFAULT_SETTINGS.wheel.opacity),
+    appearance: {
+      theme:
+        wheelAppearance.theme === "classic" ||
+        wheelAppearance.theme === "glass" ||
+        wheelAppearance.theme === "soft"
+          ? wheelAppearance.theme
+          : DEFAULT_SETTINGS.wheel.appearance.theme,
+      segmentColor: normalizeHexColor(
+        wheelAppearance.segmentColor,
+        DEFAULT_SETTINGS.wheel.appearance.segmentColor
+      ),
+      actionSegmentColor: normalizeHexColor(
+        wheelAppearance.actionSegmentColor,
+        DEFAULT_SETTINGS.wheel.appearance.actionSegmentColor
+      ),
+      emptySegmentColor: normalizeHexColor(
+        wheelAppearance.emptySegmentColor,
+        DEFAULT_SETTINGS.wheel.appearance.emptySegmentColor
+      ),
+      highlightColor: normalizeHexColor(
+        wheelAppearance.highlightColor,
+        DEFAULT_SETTINGS.wheel.appearance.highlightColor
+      ),
+      dividerColor: normalizeHexColor(
+        wheelAppearance.dividerColor,
+        DEFAULT_SETTINGS.wheel.appearance.dividerColor
+      ),
+      dividerWidth: clampInteger(
+        wheelAppearance.dividerWidth,
+        1,
+        4,
+        DEFAULT_SETTINGS.wheel.appearance.dividerWidth
+      ),
+      centerColor: normalizeHexColor(
+        wheelAppearance.centerColor,
+        DEFAULT_SETTINGS.wheel.appearance.centerColor
+      ),
+      centerIconColor: normalizeHexColor(
+        wheelAppearance.centerIconColor,
+        DEFAULT_SETTINGS.wheel.appearance.centerIconColor
+      ),
+      centerSize: clampInteger(
+        wheelAppearance.centerSize,
+        10,
+        24,
+        DEFAULT_SETTINGS.wheel.appearance.centerSize
+      ),
+      shadow:
+        wheelAppearance.shadow === "none" ||
+        wheelAppearance.shadow === "strong" ||
+        wheelAppearance.shadow === "soft"
+          ? wheelAppearance.shadow
+          : DEFAULT_SETTINGS.wheel.appearance.shadow,
+      emptySlotDisplay:
+        wheelAppearance.emptySlotDisplay === "icon" ||
+        wheelAppearance.emptySlotDisplay === "hidden" ||
+        wheelAppearance.emptySlotDisplay === "full"
+          ? wheelAppearance.emptySlotDisplay
+          : DEFAULT_SETTINGS.wheel.appearance.emptySlotDisplay
+    }
   };
 
   return {

@@ -188,6 +188,85 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
       await this.plugin.saveSettingsAndRefresh();
     });
 
+    this.addHeading(section, "轮盘外观");
+    new Setting(section)
+      .setName("轮盘主题")
+      .setDesc("只改变轻量 CSS 变量，不增加复杂动画。")
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOption("soft", "柔和")
+          .addOption("classic", "经典")
+          .addOption("glass", "玻璃")
+          .setValue(this.plugin.settings.wheel.appearance.theme)
+          .onChange(async (value) => {
+            this.plugin.settings.wheel.appearance.theme = value as typeof this.plugin.settings.wheel.appearance.theme;
+            await this.plugin.saveSettingsAndRefresh();
+          })
+      );
+    this.addColorSetting(section, "普通扇区颜色", "轮盘基础扇区背景色。", this.plugin.settings.wheel.appearance.segmentColor, async (value) => {
+      this.plugin.settings.wheel.appearance.segmentColor = value;
+      await this.plugin.saveSettingsAndRefresh();
+    });
+    this.addColorSetting(section, "动作扇区颜色", "已经绑定动作的扇区背景色。", this.plugin.settings.wheel.appearance.actionSegmentColor, async (value) => {
+      this.plugin.settings.wheel.appearance.actionSegmentColor = value;
+      await this.plugin.saveSettingsAndRefresh();
+    });
+    this.addColorSetting(section, "空位扇区颜色", "没有动作的扇区背景色。", this.plugin.settings.wheel.appearance.emptySegmentColor, async (value) => {
+      this.plugin.settings.wheel.appearance.emptySegmentColor = value;
+      await this.plugin.saveSettingsAndRefresh();
+    });
+    this.addColorSetting(section, "高亮颜色", "选中或悬停扇区的颜色。", this.plugin.settings.wheel.appearance.highlightColor, async (value) => {
+      this.plugin.settings.wheel.appearance.highlightColor = value;
+      await this.plugin.saveSettingsAndRefresh();
+    });
+    this.addColorSetting(section, "分割线颜色", "轮盘扇区之间的线条颜色。", this.plugin.settings.wheel.appearance.dividerColor, async (value) => {
+      this.plugin.settings.wheel.appearance.dividerColor = value;
+      await this.plugin.saveSettingsAndRefresh();
+    });
+    this.addNumberSetting(section, "分割线粗细", "建议 1 到 2，过粗会显得拥挤。", 1, 4, this.plugin.settings.wheel.appearance.dividerWidth, async (value) => {
+      this.plugin.settings.wheel.appearance.dividerWidth = value;
+      await this.plugin.saveSettingsAndRefresh();
+    });
+    this.addColorSetting(section, "中心按钮颜色", "轮盘中心按钮背景色。", this.plugin.settings.wheel.appearance.centerColor, async (value) => {
+      this.plugin.settings.wheel.appearance.centerColor = value;
+      await this.plugin.saveSettingsAndRefresh();
+    });
+    this.addColorSetting(section, "中心图标颜色", "轮盘中心图标颜色。", this.plugin.settings.wheel.appearance.centerIconColor, async (value) => {
+      this.plugin.settings.wheel.appearance.centerIconColor = value;
+      await this.plugin.saveSettingsAndRefresh();
+    });
+    this.addNumberSetting(section, "中心按钮大小", "中心按钮占轮盘直径百分比，10 到 24。", 10, 24, this.plugin.settings.wheel.appearance.centerSize, async (value) => {
+      this.plugin.settings.wheel.appearance.centerSize = value;
+      await this.plugin.saveSettingsAndRefresh();
+    });
+    new Setting(section)
+      .setName("轮盘阴影")
+      .setDesc("轻量阴影，不影响交互速度。")
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOption("soft", "轻微")
+          .addOption("none", "无")
+          .addOption("strong", "明显")
+          .setValue(this.plugin.settings.wheel.appearance.shadow)
+          .onChange(async (value) => {
+            this.plugin.settings.wheel.appearance.shadow = value as typeof this.plugin.settings.wheel.appearance.shadow;
+            await this.plugin.saveSettingsAndRefresh();
+          })
+      );
+    new Setting(section)
+      .setName("空位显示")
+      .setDesc("减少空位文字可以让轮盘更清爽。")
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOption("full", "显示 + 和空")
+          .addOption("icon", "只显示 +")
+          .addOption("hidden", "隐藏空位标记")
+          .setValue(this.plugin.settings.wheel.appearance.emptySlotDisplay)
+          .onChange(async (value) => {
+            this.plugin.settings.wheel.appearance.emptySlotDisplay = value as typeof this.plugin.settings.wheel.appearance.emptySlotDisplay;
+            await this.plugin.saveSettingsAndRefresh();
+          })
+      );
   }
 
   private renderFloatingSettings(): void {

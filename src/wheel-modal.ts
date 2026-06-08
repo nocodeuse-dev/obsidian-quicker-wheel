@@ -220,11 +220,22 @@ export function renderWheelPreview(
   const center = size / 2;
   const slots = buildWheelSlots(settings.wheel);
   const wrapper = container.createDiv({ cls: "obsidian-quicker-wheel" });
+  wrapper.addClass(`obsidian-quicker-wheel-theme-${settings.wheel.appearance.theme}`);
+  wrapper.addClass(`obsidian-quicker-wheel-shadow-${settings.wheel.appearance.shadow}`);
   wrapper.addEventListener("click", (event) => {
     event.stopPropagation();
   });
   wrapper.style.setProperty("--quicker-wheel-size", `${size}px`);
   wrapper.style.setProperty("--quicker-text-size", `${settings.wheel.textSize}px`);
+  wrapper.style.setProperty("--quicker-wheel-segment-color", settings.wheel.appearance.segmentColor);
+  wrapper.style.setProperty("--quicker-wheel-action-color", settings.wheel.appearance.actionSegmentColor);
+  wrapper.style.setProperty("--quicker-wheel-empty-color", settings.wheel.appearance.emptySegmentColor);
+  wrapper.style.setProperty("--quicker-wheel-highlight-color", settings.wheel.appearance.highlightColor);
+  wrapper.style.setProperty("--quicker-wheel-divider-color", settings.wheel.appearance.dividerColor);
+  wrapper.style.setProperty("--quicker-wheel-divider-width", `${settings.wheel.appearance.dividerWidth}`);
+  wrapper.style.setProperty("--quicker-wheel-center-color", settings.wheel.appearance.centerColor);
+  wrapper.style.setProperty("--quicker-wheel-center-icon-color", settings.wheel.appearance.centerIconColor);
+  wrapper.style.setProperty("--quicker-wheel-center-size", `${settings.wheel.appearance.centerSize}%`);
   wrapper.style.width = `${size}px`;
   wrapper.style.height = `${size}px`;
   wrapper.style.opacity = `${settings.wheel.opacity / 100}`;
@@ -251,6 +262,8 @@ export function renderWheelPreview(
     path.addClass("obsidian-quicker-wheel-segment");
     if (action) {
       path.addClass("is-filled");
+    } else {
+      path.addClass("is-empty");
     }
     if (action?.id === options.selectedActionId) {
       path.addClass("is-selected");
@@ -294,12 +307,16 @@ export function renderWheelPreview(
       );
       label.createDiv({ cls: "obsidian-quicker-wheel-text", text: action.label });
     } else {
-      renderConfiguredIcon(
-        label.createDiv({ cls: "obsidian-quicker-wheel-icon" }),
-        DEFAULT_EMPTY_SLOT_ICON,
-        "+"
-      );
-      label.createDiv({ cls: "obsidian-quicker-wheel-text", text: "空" });
+      if (settings.wheel.appearance.emptySlotDisplay !== "hidden") {
+        renderConfiguredIcon(
+          label.createDiv({ cls: "obsidian-quicker-wheel-icon" }),
+          DEFAULT_EMPTY_SLOT_ICON,
+          "+"
+        );
+      }
+      if (settings.wheel.appearance.emptySlotDisplay === "full") {
+        label.createDiv({ cls: "obsidian-quicker-wheel-text", text: "空" });
+      }
     }
   }
 

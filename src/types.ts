@@ -8,6 +8,26 @@ export interface WheelMenuSettings {
   textSize: number;
   timeoutMs: number;
   opacity: number;
+  appearance: WheelAppearanceSettings;
+}
+
+export type WheelTheme = "classic" | "soft" | "glass";
+export type WheelShadow = "none" | "soft" | "strong";
+export type EmptySlotDisplay = "full" | "icon" | "hidden";
+
+export interface WheelAppearanceSettings {
+  theme: WheelTheme;
+  segmentColor: string;
+  actionSegmentColor: string;
+  emptySegmentColor: string;
+  highlightColor: string;
+  dividerColor: string;
+  dividerWidth: number;
+  centerColor: string;
+  centerIconColor: string;
+  centerSize: number;
+  shadow: WheelShadow;
+  emptySlotDisplay: EmptySlotDisplay;
 }
 
 export interface FloatingButtonSettings {

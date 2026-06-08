@@ -79,12 +79,32 @@
 }
 
 .obsidian-quicker-wheel {
+  --quicker-wheel-action-color: color-mix(in srgb, var(--background-primary) 88%, var(--interactive-accent) 12%);
+  --quicker-wheel-center-color: var(--background-primary);
+  --quicker-wheel-center-icon-color: var(--interactive-accent);
+  --quicker-wheel-divider-color: var(--background-modifier-border);
+  --quicker-wheel-divider-width: 1.4;
+  --quicker-wheel-empty-color: var(--background-primary);
+  --quicker-wheel-highlight-color: color-mix(in srgb, var(--background-primary) 72%, var(--interactive-accent) 28%);
+  --quicker-wheel-segment-color: var(--background-primary);
   flex: 0 0 auto;
   height: var(--quicker-wheel-size);
   overflow: visible;
   position: relative;
   touch-action: none;
   width: var(--quicker-wheel-size);
+}
+
+.obsidian-quicker-wheel-shadow-soft {
+  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.16));
+}
+
+.obsidian-quicker-wheel-shadow-strong {
+  filter: drop-shadow(0 18px 42px rgba(0, 0, 0, 0.26));
+}
+
+.obsidian-quicker-wheel-theme-glass .obsidian-quicker-wheel-segment {
+  opacity: 0.86;
 }
 
 .obsidian-quicker-wheel-svg {
@@ -97,20 +117,24 @@
 
 .obsidian-quicker-wheel-segment {
   cursor: pointer;
-  fill: var(--background-primary);
-  stroke: var(--background-modifier-border);
-  stroke-width: 1.4;
+  fill: var(--quicker-wheel-segment-color);
+  stroke: var(--quicker-wheel-divider-color);
+  stroke-width: var(--quicker-wheel-divider-width);
   transition: fill 120ms ease, stroke 120ms ease;
 }
 
 .obsidian-quicker-wheel-segment.is-filled {
-  fill: color-mix(in srgb, var(--background-primary) 88%, var(--interactive-accent) 12%);
+  fill: var(--quicker-wheel-action-color);
+}
+
+.obsidian-quicker-wheel-segment.is-empty {
+  fill: var(--quicker-wheel-empty-color);
 }
 
 .obsidian-quicker-wheel-segment:hover,
 .obsidian-quicker-wheel-segment.is-selected {
-  fill: color-mix(in srgb, var(--background-primary) 72%, var(--interactive-accent) 28%);
-  stroke: var(--interactive-accent);
+  fill: var(--quicker-wheel-highlight-color);
+  stroke: var(--quicker-wheel-highlight-color);
 }
 
 .obsidian-quicker-wheel-labels {
@@ -182,16 +206,16 @@
 
 .obsidian-quicker-wheel-center {
   align-items: center;
-  background: var(--background-primary);
-  border: 1px solid var(--background-modifier-border);
+  background: var(--quicker-wheel-center-color);
+  border: var(--quicker-wheel-divider-width) solid var(--quicker-wheel-divider-color);
   border-radius: 50%;
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
-  color: var(--interactive-accent);
+  color: var(--quicker-wheel-center-icon-color);
   cursor: pointer;
   display: flex;
   font-size: 30px;
   font-weight: 600;
-  height: 15%;
+  height: var(--quicker-wheel-center-size);
   justify-content: center;
   left: 50%;
   position: absolute;
@@ -199,7 +223,7 @@
   touch-action: none;
   transform: translate(-50%, -50%);
   user-select: none;
-  width: 15%;
+  width: var(--quicker-wheel-center-size);
 }
 
 .obsidian-quicker-floating-button {
