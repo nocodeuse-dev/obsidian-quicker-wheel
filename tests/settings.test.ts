@@ -16,9 +16,13 @@ describe("normalizeSettings", () => {
     expect(settings.wheel.timeoutMs).toBe(20000);
     expect(settings.wheel.opacity).toBe(100);
     expect(settings.wheel.appearance.theme).toBe("soft");
-    expect(settings.wheel.appearance.segmentColor).toBe("#ffffff");
-    expect(settings.wheel.appearance.actionSegmentColor).toBe("#f2edff");
-    expect(settings.wheel.appearance.emptySlotDisplay).toBe("full");
+    expect(settings.wheel.appearance.segmentColor).toBe("#f8f7fc");
+    expect(settings.wheel.appearance.actionSegmentColor).toBe("#eee9ff");
+    expect(settings.wheel.appearance.emptySegmentColor).toBe("#fbfaff");
+    expect(settings.wheel.appearance.highlightColor).toBe("#ddd2ff");
+    expect(settings.wheel.appearance.dividerColor).toBe("#d9d4e3");
+    expect(settings.wheel.appearance.centerSize).toBe(17);
+    expect(settings.wheel.appearance.emptySlotDisplay).toBe("icon");
     expect(settings.floatingButton.mobileEnabled).toBe(true);
     expect(settings.floatingButton.desktopEnabled).toBe(true);
     expect(settings.floatingButton.gesture.tapMaxMs).toBe(260);
@@ -49,6 +53,49 @@ describe("normalizeSettings", () => {
     expect(settings.wheel.ringCount).toBe(DEFAULT_SETTINGS.wheel.ringCount);
     expect(settings.floatingButton.mobileEnabled).toBe(true);
     expect(settings.actions.length).toBeGreaterThan(0);
+  });
+
+  test("upgrades the original default wheel appearance without overriding customized values", () => {
+    const migrated = normalizeSettings({
+      wheel: {
+        appearance: {
+          theme: "soft",
+          segmentColor: "#ffffff",
+          actionSegmentColor: "#f2edff",
+          emptySegmentColor: "#ffffff",
+          highlightColor: "#c4b5fd",
+          dividerColor: "#ded8ea",
+          dividerWidth: 1,
+          centerColor: "#ffffff",
+          centerIconColor: "#7c3aed",
+          centerSize: 15,
+          shadow: "soft",
+          emptySlotDisplay: "full"
+        }
+      }
+    });
+    const customized = normalizeSettings({
+      wheel: {
+        appearance: {
+          theme: "soft",
+          segmentColor: "#ffffff",
+          actionSegmentColor: "#abcdef",
+          emptySegmentColor: "#ffffff",
+          highlightColor: "#c4b5fd",
+          dividerColor: "#ded8ea",
+          dividerWidth: 1,
+          centerColor: "#ffffff",
+          centerIconColor: "#7c3aed",
+          centerSize: 15,
+          shadow: "soft",
+          emptySlotDisplay: "full"
+        }
+      }
+    });
+
+    expect(migrated.wheel.appearance).toEqual(DEFAULT_SETTINGS.wheel.appearance);
+    expect(customized.wheel.appearance.actionSegmentColor).toBe("#abcdef");
+    expect(customized.wheel.appearance.emptySlotDisplay).toBe("full");
   });
 
   test("clamps unsafe numeric values and preserves known action data", () => {

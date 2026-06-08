@@ -60,6 +60,21 @@ const LEGACY_DEFAULT_ACTION_ICONS: Record<string, string[]> = {
   settings: ["⚙", "SET"]
 };
 
+const ORIGINAL_DEFAULT_WHEEL_APPEARANCE = {
+  theme: "soft",
+  segmentColor: "#ffffff",
+  actionSegmentColor: "#f2edff",
+  emptySegmentColor: "#ffffff",
+  highlightColor: "#c4b5fd",
+  dividerColor: "#ded8ea",
+  dividerWidth: 1,
+  centerColor: "#ffffff",
+  centerIconColor: "#7c3aed",
+  centerSize: 15,
+  shadow: "soft",
+  emptySlotDisplay: "full"
+} as const;
+
 export const DEFAULT_SETTINGS: ObsidianQuickerSettings = {
   wheel: {
     ringCount: 2,
@@ -70,17 +85,17 @@ export const DEFAULT_SETTINGS: ObsidianQuickerSettings = {
     opacity: 100,
     appearance: {
       theme: "soft",
-      segmentColor: "#ffffff",
-      actionSegmentColor: "#f2edff",
-      emptySegmentColor: "#ffffff",
-      highlightColor: "#c4b5fd",
-      dividerColor: "#ded8ea",
+      segmentColor: "#f8f7fc",
+      actionSegmentColor: "#eee9ff",
+      emptySegmentColor: "#fbfaff",
+      highlightColor: "#ddd2ff",
+      dividerColor: "#d9d4e3",
       dividerWidth: 1,
       centerColor: "#ffffff",
       centerIconColor: "#7c3aed",
-      centerSize: 15,
+      centerSize: 17,
       shadow: "soft",
-      emptySlotDisplay: "full"
+      emptySlotDisplay: "icon"
     }
   },
   floatingButton: {
@@ -125,7 +140,10 @@ type SettingsInput = DeepPartial<ObsidianQuickerSettings>;
 export function normalizeSettings(input: unknown): ObsidianQuickerSettings {
   const source: SettingsInput = isRecord(input) ? input : {};
   const wheel = source.wheel ?? {};
-  const wheelAppearance = wheel.appearance ?? {};
+  const storedWheelAppearance = wheel.appearance ?? {};
+  const wheelAppearance = isOriginalDefaultWheelAppearance(storedWheelAppearance)
+    ? DEFAULT_SETTINGS.wheel.appearance
+    : storedWheelAppearance;
   const floatingButton = source.floatingButton ?? {};
   const floatingGesture = floatingButton.gesture ?? {};
   const floatingColors = floatingButton.colors ?? {};
@@ -264,6 +282,15 @@ export function normalizeSettings(input: unknown): ObsidianQuickerSettings {
 
 function isRecord(value: unknown): value is SettingsInput {
   return typeof value === "object" && value !== null;
+}
+
+function isOriginalDefaultWheelAppearance(
+  appearance: DeepPartial<ObsidianQuickerSettings["wheel"]["appearance"]>
+): boolean {
+  return Object.entries(ORIGINAL_DEFAULT_WHEEL_APPEARANCE).every(
+    ([key, value]) =>
+      appearance[key as keyof typeof ORIGINAL_DEFAULT_WHEEL_APPEARANCE] === value
+  );
 }
 
 function normalizeFloatingOpacity(input: Partial<FloatingButtonOpacity>): FloatingButtonOpacity {

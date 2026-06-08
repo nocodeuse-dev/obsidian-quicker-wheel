@@ -96,7 +96,7 @@
 }
 
 .obsidian-quicker-wheel-shadow-soft {
-  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.16));
+  filter: drop-shadow(0 10px 24px rgba(38, 31, 55, 0.14));
 }
 
 .obsidian-quicker-wheel-shadow-strong {
@@ -163,9 +163,17 @@
   user-select: none;
 }
 
+.obsidian-quicker-wheel-label:not(.is-empty) {
+  font-weight: 500;
+}
+
 .obsidian-quicker-wheel-label.is-empty {
   color: var(--text-faint);
-  opacity: 0.54;
+  opacity: 0.34;
+}
+
+.obsidian-quicker-wheel-label.is-empty .obsidian-quicker-wheel-icon {
+  font-size: calc(var(--quicker-text-size) + 5px);
 }
 
 .obsidian-quicker-wheel-label.is-selected {
@@ -209,7 +217,9 @@
   background: var(--quicker-wheel-center-color);
   border: var(--quicker-wheel-divider-width) solid var(--quicker-wheel-divider-color);
   border-radius: 50%;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
+  box-shadow:
+    0 5px 16px rgba(38, 31, 55, 0.14),
+    inset 0 0 0 1px rgba(124, 58, 237, 0.08);
   color: var(--quicker-wheel-center-icon-color);
   cursor: pointer;
   display: flex;
