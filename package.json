@@ -1,6 +1,6 @@
 {
   "name": "quicker-wheel",
-  "version": "0.1.41",
+  "version": "0.1.42",
   "description": "A mobile-friendly Quicker-style radial command wheel for Obsidian.",
   "main": "main.js",
   "scripts": {

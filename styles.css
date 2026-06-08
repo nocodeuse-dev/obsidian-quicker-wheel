@@ -134,7 +134,7 @@
 .obsidian-quicker-wheel-segment:hover,
 .obsidian-quicker-wheel-segment.is-selected {
   fill: var(--quicker-wheel-highlight-color);
-  stroke: var(--quicker-wheel-highlight-color);
+  stroke: var(--quicker-wheel-divider-color);
 }
 
 .obsidian-quicker-wheel-labels {
