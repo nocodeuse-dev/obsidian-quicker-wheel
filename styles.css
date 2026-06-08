@@ -254,8 +254,14 @@
   padding: 0;
   position: fixed;
   touch-action: none;
+  transform: translateX(0);
+  transition: transform 180ms ease;
   width: 48px;
   z-index: var(--layer-popover);
+}
+
+.obsidian-quicker-floating-button.is-edge-hidden {
+  transform: translateX(var(--quicker-floating-edge-offset));
 }
 
 .obsidian-quicker-floating-symbol {

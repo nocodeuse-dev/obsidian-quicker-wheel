@@ -44,6 +44,17 @@ export interface FloatingButtonSettings {
   colors: FloatingButtonColors;
   opacity: FloatingButtonOpacity;
   textColor: string;
+  edgeHide: FloatingEdgeHideSettings;
+}
+
+export type FloatingEdgeSide = "left" | "right";
+export type FloatingEdgeTapBehavior = "open" | "reveal";
+
+export interface FloatingEdgeHideSettings {
+  enabled: boolean;
+  delayMs: number;
+  visibleSize: number;
+  tapBehavior: FloatingEdgeTapBehavior;
 }
 
 export type FloatingGestureDirection =

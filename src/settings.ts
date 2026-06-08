@@ -156,7 +156,13 @@ export const DEFAULT_SETTINGS: ObsidianQuickerSettings = {
       swipe: 100,
       move: 100
     },
-    textColor: "#1f1533"
+    textColor: "#1f1533",
+    edgeHide: {
+      enabled: false,
+      delayMs: 3000,
+      visibleSize: 14,
+      tapBehavior: "open"
+    }
   },
   actions: [...DEFAULT_ACTIONS, createDefaultCenterAction()]
 };
@@ -184,6 +190,7 @@ export function normalizeSettings(input: unknown): ObsidianQuickerSettings {
   const floatingGesture = floatingButton.gesture ?? {};
   const floatingColors = floatingButton.colors ?? {};
   const floatingOpacity = floatingButton.opacity ?? {};
+  const floatingEdgeHide = floatingButton.edgeHide ?? {};
 
   const normalizedWheel = {
     ringCount: clampInteger(wheel.ringCount, 1, 3, DEFAULT_SETTINGS.wheel.ringCount),
@@ -322,7 +329,28 @@ export function normalizeSettings(input: unknown): ObsidianQuickerSettings {
       textColor: normalizeHexColor(
         floatingButton.textColor,
         DEFAULT_SETTINGS.floatingButton.textColor
-      )
+      ),
+      edgeHide: {
+        enabled:
+          floatingEdgeHide.enabled ??
+          DEFAULT_SETTINGS.floatingButton.edgeHide.enabled,
+        delayMs: clampInteger(
+          floatingEdgeHide.delayMs,
+          500,
+          10000,
+          DEFAULT_SETTINGS.floatingButton.edgeHide.delayMs
+        ),
+        visibleSize: clampInteger(
+          floatingEdgeHide.visibleSize,
+          8,
+          32,
+          DEFAULT_SETTINGS.floatingButton.edgeHide.visibleSize
+        ),
+        tapBehavior:
+          floatingEdgeHide.tapBehavior === "reveal"
+            ? "reveal"
+            : DEFAULT_SETTINGS.floatingButton.edgeHide.tapBehavior
+      }
     },
     actions: normalizeActions(source.actions, normalizedWheel.ringCount, normalizedWheel.slotsPerRing)
   };
@@ -352,10 +380,10 @@ function isPreviousDefaultWheelAppearance(
 
 function normalizeFloatingOpacity(input: Partial<FloatingButtonOpacity>): FloatingButtonOpacity {
   return {
-    default: clampInteger(input.default, 20, 100, DEFAULT_SETTINGS.floatingButton.opacity.default),
-    tap: clampInteger(input.tap, 20, 100, DEFAULT_SETTINGS.floatingButton.opacity.tap),
-    swipe: clampInteger(input.swipe, 20, 100, DEFAULT_SETTINGS.floatingButton.opacity.swipe),
-    move: clampInteger(input.move, 20, 100, DEFAULT_SETTINGS.floatingButton.opacity.move)
+    default: clampInteger(input.default, 1, 100, DEFAULT_SETTINGS.floatingButton.opacity.default),
+    tap: clampInteger(input.tap, 1, 100, DEFAULT_SETTINGS.floatingButton.opacity.tap),
+    swipe: clampInteger(input.swipe, 1, 100, DEFAULT_SETTINGS.floatingButton.opacity.swipe),
+    move: clampInteger(input.move, 1, 100, DEFAULT_SETTINGS.floatingButton.opacity.move)
   };
 }
 

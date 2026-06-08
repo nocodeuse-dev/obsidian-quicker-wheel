@@ -43,6 +43,12 @@ describe("normalizeSettings", () => {
     expect(settings.floatingButton.opacity.tap).toBe(100);
     expect(settings.floatingButton.opacity.swipe).toBe(100);
     expect(settings.floatingButton.opacity.move).toBe(100);
+    expect(settings.floatingButton.edgeHide).toEqual({
+      enabled: false,
+      delayMs: 3000,
+      visibleSize: 14,
+      tapBehavior: "open"
+    });
     expect(settings.actions.length).toBeGreaterThan(0);
     expect(settings.actions[0]).toMatchObject({
       type: "command",
@@ -134,6 +140,50 @@ describe("normalizeSettings", () => {
     expect(settings.wheel.ringCount).toBe(DEFAULT_SETTINGS.wheel.ringCount);
     expect(settings.floatingButton.mobileEnabled).toBe(true);
     expect(settings.actions.length).toBeGreaterThan(0);
+  });
+
+  test("accepts 1 percent floating opacity and clamps invalid values", () => {
+    const settings = normalizeSettings({
+      floatingButton: {
+        opacity: {
+          default: 1,
+          tap: 50,
+          swipe: 0,
+          move: 101
+        }
+      }
+    });
+
+    expect(settings.floatingButton.opacity).toEqual({
+      default: 1,
+      tap: 50,
+      swipe: 1,
+      move: 100
+    });
+  });
+
+  test("normalizes edge-hide settings without changing existing positions", () => {
+    const settings = normalizeSettings({
+      floatingButton: {
+        x: 280,
+        y: 640,
+        edgeHide: {
+          enabled: true,
+          delayMs: 12000,
+          visibleSize: 4,
+          tapBehavior: "reveal"
+        }
+      }
+    });
+
+    expect(settings.floatingButton.x).toBe(280);
+    expect(settings.floatingButton.y).toBe(640);
+    expect(settings.floatingButton.edgeHide).toEqual({
+      enabled: true,
+      delayMs: 10000,
+      visibleSize: 8,
+      tapBehavior: "reveal"
+    });
   });
 
   test("upgrades the original default wheel appearance without overriding customized values", () => {
@@ -485,7 +535,7 @@ describe("normalizeSettings", () => {
       }
     });
 
-    expect(settings.floatingButton.opacity.default).toBe(20);
+    expect(settings.floatingButton.opacity.default).toBe(10);
     expect(settings.floatingButton.opacity.tap).toBe(50);
     expect(settings.floatingButton.opacity.swipe).toBe(100);
     expect(settings.floatingButton.opacity.move).toBe(100);

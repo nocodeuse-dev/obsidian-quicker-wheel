@@ -4,10 +4,17 @@ import {
   getFloatingGestureIntent
 } from "./floating-gesture";
 import { hexToRgba } from "./color";
-import { clampFloatingButtonPosition } from "./floating-position";
+import { getHiddenTapOutcome } from "./floating-edge-hide";
+import {
+  clampFloatingButtonPosition,
+  getEdgeHiddenOffset,
+  snapFloatingButtonToEdge
+} from "./floating-position";
 import { DEFAULT_CENTER_ICON, renderConfiguredIcon } from "./icons";
 import type {
   FloatingButtonColors,
+  FloatingEdgeHideSettings,
+  FloatingEdgeSide,
   FloatingButtonOpacity,
   FloatingGestureDirection,
   FloatingGestureSettings
@@ -21,6 +28,7 @@ interface FloatingButtonRuntimeSettings {
   colors: FloatingButtonColors;
   opacity: FloatingButtonOpacity;
   textColor: string;
+  edgeHide: FloatingEdgeHideSettings;
 }
 
 interface FloatingButtonOptions {
@@ -44,6 +52,10 @@ export class FloatingWheelButton {
   private originY = 0;
   private windowEventsRegistered = false;
   private activeWindow: Window | null = null;
+  private edgeSide: FloatingEdgeSide = "left";
+  private edgeHidden = false;
+  private edgeHideTimer: number | null = null;
+  private pointerStartedHidden = false;
 
   constructor(private readonly options: FloatingButtonOptions) {}
 
@@ -54,9 +66,11 @@ export class FloatingWheelButton {
     }
 
     if (this.buttonEl) {
+      this.revealFromEdge();
       this.applyPosition();
       this.applyColor("default");
       this.hideDirectionArrow();
+      this.scheduleEdgeHide();
       return;
     }
 
@@ -80,6 +94,7 @@ export class FloatingWheelButton {
     this.applyPosition();
     this.applyColor("default");
     this.hideDirectionArrow();
+    this.scheduleEdgeHide();
 
     this.options.plugin.registerDomEvent(button, "pointerdown", (event: PointerEvent) =>
       this.handlePointerDown(event)
@@ -99,15 +114,20 @@ export class FloatingWheelButton {
       this.options.plugin.registerDomEvent(this.activeWindow, "pointercancel", (event: PointerEvent) =>
         this.handlePointerCancel(event)
       );
+      this.options.plugin.registerDomEvent(this.activeWindow, "resize", () =>
+        this.handleViewportResize()
+      );
       this.windowEventsRegistered = true;
     }
   }
 
   hide(): void {
+    this.clearEdgeHideTimer();
     this.buttonEl?.remove();
     this.buttonEl = null;
     this.arrowEl = null;
     this.dragging = false;
+    this.edgeHidden = false;
   }
 
   refresh(settings: FloatingButtonRuntimeSettings): void {
@@ -118,6 +138,7 @@ export class FloatingWheelButton {
     this.options.settings.colors = settings.colors;
     this.options.settings.opacity = settings.opacity;
     this.options.settings.textColor = settings.textColor;
+    this.options.settings.edgeHide = settings.edgeHide;
     this.show();
   }
 
@@ -137,10 +158,20 @@ export class FloatingWheelButton {
         height: viewport.innerHeight
       }
     );
-    this.options.settings.x = position.x;
-    this.options.settings.y = position.y;
-    this.buttonEl.style.left = `${position.x}px`;
-    this.buttonEl.style.top = `${position.y}px`;
+    const next = this.options.settings.edgeHide.enabled
+      ? snapFloatingButtonToEdge(
+          position,
+          {
+            width: viewport.innerWidth,
+            height: viewport.innerHeight
+          }
+        )
+      : { position, side: this.edgeSide };
+    this.edgeSide = next.side;
+    this.options.settings.x = next.position.x;
+    this.options.settings.y = next.position.y;
+    this.buttonEl.style.left = `${next.position.x}px`;
+    this.buttonEl.style.top = `${next.position.y}px`;
   }
 
   private handlePointerDown(event: PointerEvent): void {
@@ -150,6 +181,9 @@ export class FloatingWheelButton {
 
     event.preventDefault();
     event.stopPropagation();
+    this.pointerStartedHidden = this.edgeHidden;
+    this.clearEdgeHideTimer();
+    this.revealFromEdge();
     this.dragging = true;
     this.moving = false;
     this.moved = false;
@@ -214,9 +248,11 @@ export class FloatingWheelButton {
     }
 
     if (this.moving && this.moved) {
+      this.snapToEdge();
       await this.options.onMove(this.options.settings.x, this.options.settings.y);
       this.applyColor("default");
       this.hideDirectionArrow();
+      this.scheduleEdgeHide();
       return;
     }
 
@@ -233,14 +269,24 @@ export class FloatingWheelButton {
       await this.options.onDirection(intent.direction);
       this.applyColor("default");
       this.hideDirectionArrow();
+      this.pointerStartedHidden = false;
+      this.scheduleEdgeHide();
       return;
     }
 
     if (intent.type === "open-wheel") {
-      this.options.onOpen();
+      const outcome = getHiddenTapOutcome(
+        this.pointerStartedHidden,
+        this.options.settings.edgeHide.tapBehavior
+      );
+      if (outcome === "open") {
+        this.options.onOpen();
+      }
     }
+    this.pointerStartedHidden = false;
     this.applyColor("default");
     this.hideDirectionArrow();
+    this.scheduleEdgeHide();
   }
 
   private handlePointerCancel(event: PointerEvent): void {
@@ -258,6 +304,8 @@ export class FloatingWheelButton {
     }
     this.applyColor("default");
     this.hideDirectionArrow();
+    this.pointerStartedHidden = false;
+    this.scheduleEdgeHide();
   }
 
   private applyColor(color: keyof FloatingButtonColors): void {
@@ -284,6 +332,86 @@ export class FloatingWheelButton {
 
   private hideDirectionArrow(): void {
     this.arrowEl?.removeClass("is-visible");
+  }
+
+  private snapToEdge(): void {
+    if (!this.buttonEl || !this.options.settings.edgeHide.enabled) {
+      return;
+    }
+
+    const viewport = this.activeWindow ?? window;
+    const snapped = snapFloatingButtonToEdge(
+      { x: this.options.settings.x, y: this.options.settings.y },
+      { width: viewport.innerWidth, height: viewport.innerHeight }
+    );
+    this.edgeSide = snapped.side;
+    this.options.settings.x = snapped.position.x;
+    this.options.settings.y = snapped.position.y;
+    this.buttonEl.style.left = `${snapped.position.x}px`;
+    this.buttonEl.style.top = `${snapped.position.y}px`;
+  }
+
+  private scheduleEdgeHide(): void {
+    this.clearEdgeHideTimer();
+    if (
+      !this.buttonEl ||
+      !this.options.settings.edgeHide.enabled ||
+      this.dragging
+    ) {
+      return;
+    }
+
+    const viewport = this.activeWindow ?? window;
+    this.edgeHideTimer = viewport.setTimeout(() => {
+      this.hideAtEdge();
+    }, this.options.settings.edgeHide.delayMs);
+  }
+
+  private clearEdgeHideTimer(): void {
+    if (this.edgeHideTimer === null) {
+      return;
+    }
+
+    const viewport = this.activeWindow ?? window;
+    viewport.clearTimeout(this.edgeHideTimer);
+    this.edgeHideTimer = null;
+  }
+
+  private hideAtEdge(): void {
+    if (!this.buttonEl || this.dragging || !this.options.settings.edgeHide.enabled) {
+      return;
+    }
+
+    this.snapToEdge();
+    const offset = getEdgeHiddenOffset(
+      this.edgeSide,
+      this.options.settings.edgeHide.visibleSize
+    );
+    this.buttonEl.style.setProperty("--quicker-floating-edge-offset", `${offset}px`);
+    this.buttonEl.addClass("is-edge-hidden");
+    this.edgeHidden = true;
+    this.edgeHideTimer = null;
+  }
+
+  private revealFromEdge(): void {
+    if (!this.buttonEl) {
+      return;
+    }
+
+    this.buttonEl.removeClass("is-edge-hidden");
+    this.buttonEl.style.removeProperty("--quicker-floating-edge-offset");
+    this.edgeHidden = false;
+  }
+
+  private handleViewportResize(): void {
+    if (!this.buttonEl) {
+      return;
+    }
+
+    this.clearEdgeHideTimer();
+    this.revealFromEdge();
+    this.applyPosition();
+    this.scheduleEdgeHide();
   }
 }
 

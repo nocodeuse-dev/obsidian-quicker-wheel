@@ -1,5 +1,9 @@
 import { describe, expect, test } from "vitest";
-import { clampFloatingButtonPosition } from "../src/floating-position";
+import {
+  clampFloatingButtonPosition,
+  getEdgeHiddenOffset,
+  snapFloatingButtonToEdge
+} from "../src/floating-position";
 
 describe("clampFloatingButtonPosition", () => {
   test("moves a desktop position back inside an iPhone viewport", () => {
@@ -22,5 +26,29 @@ describe("clampFloatingButtonPosition", () => {
         8
       )
     ).toEqual({ x: 8, y: 788 });
+  });
+});
+
+describe("floating edge hiding", () => {
+  test("snaps to the nearest horizontal edge without changing vertical position", () => {
+    expect(
+      snapFloatingButtonToEdge(
+        { x: 40, y: 320 },
+        { width: 390, height: 844 }
+      )
+    ).toEqual({ position: { x: 8, y: 320 }, side: "left" });
+
+    expect(
+      snapFloatingButtonToEdge(
+        { x: 300, y: 320 },
+        { width: 390, height: 844 }
+      )
+    ).toEqual({ position: { x: 334, y: 320 }, side: "right" });
+  });
+
+  test("computes the translation needed to leave the configured width visible", () => {
+    expect(getEdgeHiddenOffset("left", 14, 48, 8)).toBe(-42);
+    expect(getEdgeHiddenOffset("right", 14, 48, 8)).toBe(42);
+    expect(getEdgeHiddenOffset("left", 32, 48, 8)).toBe(-24);
   });
 });

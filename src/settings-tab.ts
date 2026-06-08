@@ -305,6 +305,57 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
       await this.plugin.saveSettingsAndRefresh();
     });
 
+    this.addHeading(section, "贴边隐藏");
+    new Setting(section)
+      .setName("启用贴边隐藏")
+      .setDesc("悬浮球会吸附到左侧或右侧，闲置后缩进屏幕边缘。默认关闭。")
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.floatingButton.edgeHide.enabled)
+          .onChange(async (value) => {
+            this.plugin.settings.floatingButton.edgeHide.enabled = value;
+            await this.plugin.saveSettingsAndRefresh();
+          })
+      );
+    this.addNumberSetting(
+      section,
+      "闲置隐藏时间",
+      "停止操作多久后贴边隐藏，单位毫秒。",
+      500,
+      10000,
+      this.plugin.settings.floatingButton.edgeHide.delayMs,
+      async (value) => {
+        this.plugin.settings.floatingButton.edgeHide.delayMs = value;
+        await this.plugin.saveSettingsAndRefresh();
+      }
+    );
+    this.addNumberSetting(
+      section,
+      "边缘露出宽度",
+      "隐藏后仍留在屏幕内的宽度，单位像素。",
+      8,
+      32,
+      this.plugin.settings.floatingButton.edgeHide.visibleSize,
+      async (value) => {
+        this.plugin.settings.floatingButton.edgeHide.visibleSize = value;
+        await this.plugin.saveSettingsAndRefresh();
+      }
+    );
+    new Setting(section)
+      .setName("点击隐藏悬浮球")
+      .setDesc("选择一次点击直接打开轮盘，或只恢复完整悬浮球。")
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOption("open", "恢复并打开轮盘")
+          .addOption("reveal", "只恢复悬浮球")
+          .setValue(this.plugin.settings.floatingButton.edgeHide.tapBehavior)
+          .onChange(async (value) => {
+            this.plugin.settings.floatingButton.edgeHide.tapBehavior =
+              value === "reveal" ? "reveal" : "open";
+            await this.plugin.saveSettingsAndRefresh();
+          })
+      );
+
     this.addHeading(section, "颜色与透明度设置");
     this.addColorSetting(
       section,
@@ -632,7 +683,7 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
 
     const opacity = this.plugin.settings.floatingButton.opacity[key];
     const slider = new SliderComponent(controls)
-      .setLimits(20, 100, 1)
+      .setLimits(1, 100, 1)
       .setValue(opacity)
       .setDynamicTooltip();
     const text = new TextComponent(controls)
@@ -642,7 +693,7 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
         if (Number.isNaN(next)) {
           return;
         }
-        const clamped = Math.min(100, Math.max(20, next));
+        const clamped = Math.min(100, Math.max(1, next));
         this.plugin.settings.floatingButton.opacity[key] = clamped;
         slider.setValue(clamped);
         await this.plugin.saveSettingsAndRefresh();
