@@ -316,6 +316,16 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
     });
 
     this.addHeading(section, "颜色与透明度设置");
+    this.addColorSetting(
+      section,
+      "悬浮窗字体颜色",
+      "控制中心图标和方向箭头颜色。",
+      this.plugin.settings.floatingButton.textColor,
+      async (value) => {
+        this.plugin.settings.floatingButton.textColor = value;
+        await this.plugin.saveSettingsAndRefresh();
+      }
+    );
     const colorGrid = section.createDiv({ cls: "obsidian-quicker-color-grid" });
     this.renderFloatingColorCard(colorGrid, "default", "默认", "空闲");
     this.renderFloatingColorCard(colorGrid, "tap", "短按", "打开轮盘");

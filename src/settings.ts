@@ -122,7 +122,8 @@ export const DEFAULT_SETTINGS: ObsidianQuickerSettings = {
       tap: 100,
       swipe: 100,
       move: 100
-    }
+    },
+    textColor: "#1f1533"
   },
   actions: DEFAULT_ACTIONS
 };
@@ -274,7 +275,11 @@ export function normalizeSettings(input: unknown): ObsidianQuickerSettings {
         floatingButton.directionCommands
       ),
       colors: normalizeFloatingColors(floatingColors),
-      opacity: normalizeFloatingOpacity(floatingOpacity)
+      opacity: normalizeFloatingOpacity(floatingOpacity),
+      textColor: normalizeHexColor(
+        floatingButton.textColor,
+        DEFAULT_SETTINGS.floatingButton.textColor
+      )
     },
     actions: normalizeActions(source.actions, normalizedWheel.ringCount, normalizedWheel.slotsPerRing)
   };

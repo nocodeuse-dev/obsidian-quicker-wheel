@@ -202,6 +202,7 @@ export default class ObsidianQuickerPlugin extends Plugin {
     gesture: ObsidianQuickerSettings["floatingButton"]["gesture"];
     colors: ObsidianQuickerSettings["floatingButton"]["colors"];
     opacity: ObsidianQuickerSettings["floatingButton"]["opacity"];
+    textColor: string;
   } {
     return {
       enabled: Platform.isMobileApp
@@ -211,7 +212,8 @@ export default class ObsidianQuickerPlugin extends Plugin {
       y: this.settings.floatingButton.y,
       gesture: this.settings.floatingButton.gesture,
       colors: this.settings.floatingButton.colors,
-      opacity: this.settings.floatingButton.opacity
+      opacity: this.settings.floatingButton.opacity,
+      textColor: this.settings.floatingButton.textColor
     };
   }
 }

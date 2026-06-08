@@ -34,6 +34,7 @@ describe("normalizeSettings", () => {
     expect(settings.floatingButton.colors.tap).toBe("#2563eb");
     expect(settings.floatingButton.colors.swipe).toBe("#f97316");
     expect(settings.floatingButton.colors.move).toBe("#16a34a");
+    expect(settings.floatingButton.textColor).toBe("#1f1533");
     expect(settings.floatingButton.opacity.default).toBe(100);
     expect(settings.floatingButton.opacity.tap).toBe(100);
     expect(settings.floatingButton.opacity.swipe).toBe(100);
@@ -347,6 +348,23 @@ describe("normalizeSettings", () => {
     expect(settings.floatingButton.colors.tap).toBe(DEFAULT_SETTINGS.floatingButton.colors.tap);
     expect(settings.floatingButton.colors.swipe).toBe("#abcdef");
     expect(settings.floatingButton.colors.move).toBe(DEFAULT_SETTINGS.floatingButton.colors.move);
+  });
+
+  test("normalizes the floating button text color", () => {
+    expect(
+      normalizeSettings({
+        floatingButton: {
+          textColor: "#ABCDEF"
+        }
+      }).floatingButton.textColor
+    ).toBe("#abcdef");
+    expect(
+      normalizeSettings({
+        floatingButton: {
+          textColor: "not-a-color"
+        }
+      }).floatingButton.textColor
+    ).toBe(DEFAULT_SETTINGS.floatingButton.textColor);
   });
 
   test("normalizes floating button opacity", () => {

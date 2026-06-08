@@ -4,6 +4,7 @@ import {
   getFloatingGestureIntent
 } from "./floating-gesture";
 import { hexToRgba } from "./color";
+import { clampFloatingButtonPosition } from "./floating-position";
 import { DEFAULT_CENTER_ICON, renderConfiguredIcon } from "./icons";
 import type {
   FloatingButtonColors,
@@ -19,6 +20,7 @@ interface FloatingButtonRuntimeSettings {
   gesture: FloatingGestureSettings;
   colors: FloatingButtonColors;
   opacity: FloatingButtonOpacity;
+  textColor: string;
 }
 
 interface FloatingButtonOptions {
@@ -115,6 +117,7 @@ export class FloatingWheelButton {
     this.options.settings.gesture = settings.gesture;
     this.options.settings.colors = settings.colors;
     this.options.settings.opacity = settings.opacity;
+    this.options.settings.textColor = settings.textColor;
     this.show();
   }
 
@@ -123,8 +126,21 @@ export class FloatingWheelButton {
       return;
     }
 
-    this.buttonEl.style.left = `${this.options.settings.x}px`;
-    this.buttonEl.style.top = `${this.options.settings.y}px`;
+    const viewport = this.activeWindow ?? this.buttonEl.ownerDocument.defaultView ?? window;
+    const position = clampFloatingButtonPosition(
+      {
+        x: this.options.settings.x,
+        y: this.options.settings.y
+      },
+      {
+        width: viewport.innerWidth,
+        height: viewport.innerHeight
+      }
+    );
+    this.options.settings.x = position.x;
+    this.options.settings.y = position.y;
+    this.buttonEl.style.left = `${position.x}px`;
+    this.buttonEl.style.top = `${position.y}px`;
   }
 
   private handlePointerDown(event: PointerEvent): void {
@@ -253,6 +269,7 @@ export class FloatingWheelButton {
       this.options.settings.colors[color],
       this.options.settings.opacity[color]
     );
+    this.buttonEl.style.color = this.options.settings.textColor;
   }
 
   private showDirectionArrow(direction: FloatingGestureDirection): void {

@@ -41,6 +41,7 @@ export interface FloatingButtonSettings {
   directionActions: FloatingDirectionActionMap;
   colors: FloatingButtonColors;
   opacity: FloatingButtonOpacity;
+  textColor: string;
 }
 
 export type FloatingGestureDirection =
