@@ -45,11 +45,15 @@ function isObsidianIconName(value: string): boolean {
 }
 
 function createSafeSvgElement(document: Document, value: string): SVGSVGElement | null {
-  const template = document.createElement("template");
-  template.innerHTML = value.trim();
-  const svg = template.content.firstElementChild;
+  const parser = new DOMParser();
+  const parsedDocument = parser.parseFromString(value.trim(), "image/svg+xml");
+  if (parsedDocument.querySelector("parsererror")) {
+    return null;
+  }
 
-  if (!svg || svg.localName.toLowerCase() !== "svg") {
+  const svg = parsedDocument.documentElement;
+
+  if (svg.localName.toLowerCase() !== "svg") {
     return null;
   }
 

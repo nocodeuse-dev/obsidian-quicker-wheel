@@ -145,8 +145,7 @@ export class AndroidQuickerWheelOverlay {
 
   close(): void {
     if (this.closeTimer !== null) {
-      const activeWindow = this.overlayEl?.ownerDocument.defaultView ?? window;
-      activeWindow.clearTimeout(this.closeTimer);
+      window.clearTimeout(this.closeTimer);
       this.closeTimer = null;
     }
 
