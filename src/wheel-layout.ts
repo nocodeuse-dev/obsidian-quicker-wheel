@@ -39,7 +39,10 @@ export function findActionForSlot(
 ): WheelAction | undefined {
   return actions.find(
     (action) =>
-      action.enabled && action.ringIndex === ringIndex && action.slotIndex === slotIndex
+      action.placement !== "center" &&
+      action.enabled &&
+      action.ringIndex === ringIndex &&
+      action.slotIndex === slotIndex
   );
 }
 

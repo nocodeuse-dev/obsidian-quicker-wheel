@@ -234,6 +234,11 @@
   width: var(--quicker-wheel-center-size);
 }
 
+.obsidian-quicker-wheel-center.is-selected {
+  border-color: var(--quicker-wheel-selected-border-color);
+  border-width: max(2px, var(--quicker-wheel-divider-width));
+}
+
 .obsidian-quicker-floating-button {
   align-items: center;
   background: var(--interactive-accent);

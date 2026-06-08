@@ -53,6 +53,22 @@ const DEFAULT_ACTIONS: WheelAction[] = [
   }
 ];
 
+export const CENTER_ACTION_ID = "quicker-wheel-center";
+
+export function createDefaultCenterAction(): WheelAction {
+  return {
+    id: CENTER_ACTION_ID,
+    label: "插件设置",
+    icon: "zap",
+    placement: "center",
+    type: "command",
+    commandId: "quicker-wheel:open-settings",
+    enabled: true,
+    ringIndex: 0,
+    slotIndex: 0
+  };
+}
+
 const LEGACY_DEFAULT_ACTION_ICONS: Record<string, string[]> = {
   "command-palette": ["⌘", "CMD"],
   "quick-switcher": ["🔎", "SW"],
@@ -142,7 +158,7 @@ export const DEFAULT_SETTINGS: ObsidianQuickerSettings = {
     },
     textColor: "#1f1533"
   },
-  actions: DEFAULT_ACTIONS
+  actions: [...DEFAULT_ACTIONS, createDefaultCenterAction()]
 };
 
 type DeepPartial<T> = {
@@ -474,7 +490,10 @@ export function createOrSelectActionForSlot(
   slotIndex: number
 ): { action: WheelAction; created: boolean } {
   const existing = settings.actions.find(
-    (action) => action.ringIndex === ringIndex && action.slotIndex === slotIndex
+    (action) =>
+      action.placement !== "center" &&
+      action.ringIndex === ringIndex &&
+      action.slotIndex === slotIndex
   );
   if (existing) {
     return { action: existing, created: false };
@@ -485,18 +504,52 @@ export function createOrSelectActionForSlot(
   return { action, created: true };
 }
 
+export function getCenterAction(actions: WheelAction[]): WheelAction | undefined {
+  return actions.find((action) => action.placement === "center");
+}
+
+export function resetCenterAction(settings: ObsidianQuickerSettings): WheelAction {
+  const centerIndex = settings.actions.findIndex((action) => action.placement === "center");
+  const centerAction = createDefaultCenterAction();
+
+  settings.actions = settings.actions.filter((action) => action.placement !== "center");
+  if (centerIndex >= 0) {
+    settings.actions.splice(Math.min(centerIndex, settings.actions.length), 0, centerAction);
+  } else {
+    settings.actions.push(centerAction);
+  }
+
+  return centerAction;
+}
+
 function normalizeActions(
   actions: WheelAction[] | undefined,
   ringCount: number,
   slotsPerRing: number
 ): WheelAction[] {
-  if (!actions || actions.length === 0) {
-    return DEFAULT_SETTINGS.actions.map((action, index) =>
+  const normalized = !actions || actions.length === 0
+    ? DEFAULT_SETTINGS.actions.map((action, index) =>
       normalizeAction({ ...action }, index, ringCount, slotsPerRing)
-    );
+    )
+    : actions.map((action, index) => normalizeAction(action, index, ringCount, slotsPerRing));
+
+  let foundCenter = false;
+  const uniqueActions = normalized.filter((action) => {
+    if (action.placement !== "center") {
+      return true;
+    }
+    if (foundCenter) {
+      return false;
+    }
+    foundCenter = true;
+    return true;
+  });
+
+  if (!foundCenter) {
+    uniqueActions.push(createDefaultCenterAction());
   }
 
-  return actions.map((action, index) => normalizeAction(action, index, ringCount, slotsPerRing));
+  return uniqueActions;
 }
 
 function normalizeAction(
@@ -509,6 +562,7 @@ function normalizeAction(
   action.label = stringOr(action.label, "未命名");
   action.icon = stringOr(action.icon, "•");
   action.icon = migrateLegacyDefaultActionIcon(action.id, action.icon);
+  action.placement = action.placement === "center" ? "center" : "wheel";
   action.type =
     action.type === "file" || action.type === "uri" || action.type === "script"
       ? action.type

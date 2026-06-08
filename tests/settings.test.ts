@@ -1,7 +1,10 @@
 import { describe, expect, test } from "vitest";
 import {
+  createDefaultCenterAction,
   createOrSelectActionForSlot,
   DEFAULT_SETTINGS,
+  getCenterAction,
+  resetCenterAction,
   normalizeSettings
 } from "../src/settings";
 
@@ -47,6 +50,82 @@ describe("normalizeSettings", () => {
       ringIndex: 0,
       slotIndex: 0
     });
+    expect(getCenterAction(settings.actions)).toMatchObject({
+      label: "插件设置",
+      icon: "zap",
+      type: "command",
+      commandId: "quicker-wheel:open-settings",
+      placement: "center"
+    });
+  });
+
+  test("adds the default center action when migrating existing actions", () => {
+    const settings = normalizeSettings({
+      actions: [
+        {
+          id: "existing",
+          label: "Existing",
+          icon: "star",
+          type: "command",
+          commandId: "app:open-settings",
+          enabled: true,
+          ringIndex: 0,
+          slotIndex: 0
+        }
+      ]
+    });
+
+    expect(settings.actions).toHaveLength(2);
+    expect(getCenterAction(settings.actions)?.commandId).toBe("quicker-wheel:open-settings");
+  });
+
+  test("preserves a customized center action", () => {
+    const settings = normalizeSettings({
+      actions: [
+        {
+          id: "custom-center",
+          label: "主页",
+          icon: "home",
+          type: "file",
+          filePath: "主页.md",
+          enabled: true,
+          ringIndex: 0,
+          slotIndex: 0,
+          placement: "center"
+        }
+      ]
+    });
+
+    expect(getCenterAction(settings.actions)).toMatchObject({
+      id: "custom-center",
+      label: "主页",
+      icon: "home",
+      type: "file",
+      filePath: "主页.md"
+    });
+  });
+
+  test("restores the default action when resetting the center", () => {
+    const settings = normalizeSettings({
+      actions: [
+        {
+          ...createDefaultCenterAction(),
+          label: "Custom",
+          icon: "home",
+          commandId: "app:open-settings"
+        }
+      ]
+    });
+
+    const restored = resetCenterAction(settings);
+
+    expect(restored).toMatchObject({
+      label: "插件设置",
+      icon: "zap",
+      commandId: "quicker-wheel:open-settings",
+      placement: "center"
+    });
+    expect(getCenterAction(settings.actions)).toBe(restored);
   });
 
   test("falls back to defaults for invalid stored data", () => {
@@ -253,7 +332,8 @@ describe("normalizeSettings", () => {
       "terminal",
       "search",
       "file-plus",
-      "settings"
+      "settings",
+      "zap"
     ]);
   });
 
@@ -469,6 +549,7 @@ describe("normalizeSettings", () => {
 
     expect(result.created).toBe(false);
     expect(result.action.id).toBe("existing");
-    expect(settings.actions).toHaveLength(1);
+    expect(settings.actions).toHaveLength(2);
+    expect(getCenterAction(settings.actions)).toBeDefined();
   });
 });

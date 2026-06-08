@@ -95,6 +95,7 @@ export interface WheelAction {
   id: string;
   label: string;
   icon: string;
+  placement?: "wheel" | "center";
   type: WheelActionType;
   commandId?: string;
   filePath?: string;

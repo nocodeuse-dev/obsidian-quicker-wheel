@@ -54,6 +54,24 @@ describe("buildWheelSlots", () => {
     expect(findActionForSlot(actions, 1, 0)).toBeUndefined();
   });
 
+  test("does not treat the center action as a ring slot action", () => {
+    const actions: WheelAction[] = [
+      {
+        id: "center",
+        label: "插件设置",
+        icon: "zap",
+        type: "command",
+        commandId: "quicker-wheel:open-settings",
+        enabled: true,
+        ringIndex: 0,
+        slotIndex: 0,
+        placement: "center"
+      }
+    ];
+
+    expect(findActionForSlot(actions, 0, 0)).toBeUndefined();
+  });
+
   test("calculates a phone-safe render size from viewport constraints", () => {
     expect(calculateWheelRenderSize({ preferredSize: 420, viewportWidth: 390, viewportHeight: 740 })).toBe(342);
     expect(calculateWheelRenderSize({ preferredSize: 320, viewportWidth: 390, viewportHeight: 740 })).toBe(320);

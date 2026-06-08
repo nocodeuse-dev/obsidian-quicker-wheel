@@ -23,7 +23,7 @@ import { DEFAULT_CENTER_ICON, renderConfiguredIcon } from "./icons";
 import type { ObsidianCommand } from "./obsidian-commands";
 import { filterObsidianFiles } from "./obsidian-files";
 import type { ObsidianFileItem } from "./obsidian-files";
-import { createBlankAction } from "./settings";
+import { createBlankAction, resetCenterAction } from "./settings";
 import { renderWheelPreview } from "./wheel-modal";
 import type { WheelAction } from "./types";
 import type { FloatingDirectionAction, FloatingGestureDirection } from "./types";
@@ -375,7 +375,9 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
       body.createDiv({ cls: "obsidian-quicker-action-item-label", text: action.label });
       body.createDiv({
         cls: "obsidian-quicker-action-item-meta",
-        text: action.commandId || action.filePath || action.type
+        text: action.placement === "center"
+          ? `中心 · ${action.commandId || action.filePath || action.type}`
+          : action.commandId || action.filePath || action.type
       });
       item.addEventListener("click", () => {
         this.selectedActionId = action.id;
@@ -398,9 +400,13 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
         this.selectedActionId = getPreviewSelectedActionId(action);
         this.rerenderPreservingScroll();
       },
+      onCenterAction: (action) => {
+        this.selectedActionId = getPreviewSelectedActionId(action);
+        this.rerenderPreservingScroll();
+      },
       onSlot: async (slot) => {
         const selected = this.selectedAction;
-        if (!selected) {
+        if (!selected || selected.placement === "center") {
           const action = createBlankAction(slot.ringIndex, slot.slotIndex);
           this.plugin.settings.actions.push(action);
           this.selectedActionId = action.id;
@@ -685,10 +691,16 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
       return;
     }
 
-    this.plugin.settings.actions = this.plugin.settings.actions.filter(
-      (action) => action.id !== this.selectedActionId
-    );
-    this.selectedActionId = this.plugin.settings.actions[0]?.id ?? null;
+    const selected = this.selectedAction;
+    if (selected?.placement === "center") {
+      const restored = resetCenterAction(this.plugin.settings);
+      this.selectedActionId = restored.id;
+    } else {
+      this.plugin.settings.actions = this.plugin.settings.actions.filter(
+        (action) => action.id !== this.selectedActionId
+      );
+      this.selectedActionId = this.plugin.settings.actions[0]?.id ?? null;
+    }
     await this.plugin.saveSettingsAndRefresh();
     this.rerenderPreservingScroll();
   }

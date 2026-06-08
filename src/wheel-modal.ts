@@ -7,6 +7,7 @@ import {
   DEFAULT_CENTER_ICON,
   renderConfiguredIcon
 } from "./icons";
+import { getCenterAction } from "./settings";
 import {
   getWheelSlotActivation,
   isWheelActionSelected
@@ -98,7 +99,7 @@ export class QuickerWheelModal extends Modal {
         this.close();
         void this.onEmptySlot?.(slot);
       },
-      onCenterClick: () => this.close()
+      onCenterAction: onAction
     });
   }
 }
@@ -192,7 +193,7 @@ export class AndroidQuickerWheelOverlay {
         this.close();
         void this.onEmptySlot?.(slot);
       },
-      onCenterClick: () => this.close()
+      onCenterAction: onAction
     });
   }
 }
@@ -202,7 +203,7 @@ interface RenderWheelOptions {
   selectedActionId?: string;
   onAction?: (action: WheelAction) => void;
   onSlot?: (slot: WheelSlot) => void | Promise<void>;
-  onCenterClick?: () => void;
+  onCenterAction?: (action: WheelAction) => void;
 }
 
 export function renderWheelPreview(
@@ -328,9 +329,16 @@ export function renderWheelPreview(
   const centerButton = wrapper.createDiv({
     cls: "obsidian-quicker-wheel-center"
   });
-  renderConfiguredIcon(centerButton, DEFAULT_CENTER_ICON, "Q");
+  const centerAction = getCenterAction(settings.actions);
+  const isCenterSelected = isWheelActionSelected(centerAction, options.selectedActionId);
+  centerButton.toggleClass("is-selected", isCenterSelected);
+  centerButton.setAttr("aria-label", centerAction?.label ?? "中心动作");
+  centerButton.setAttr("title", centerAction?.label ?? "中心动作");
+  renderConfiguredIcon(centerButton, centerAction?.icon ?? DEFAULT_CENTER_ICON, "Q");
   centerButton.addEventListener("click", (event) => {
     event.stopPropagation();
-    options.onCenterClick?.();
+    if (centerAction && options.onCenterAction) {
+      options.onCenterAction(centerAction);
+    }
   });
 }
