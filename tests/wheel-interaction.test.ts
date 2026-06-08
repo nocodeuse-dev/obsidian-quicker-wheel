@@ -1,5 +1,8 @@
 import { describe, expect, test } from "vitest";
-import { getWheelSlotActivation } from "../src/wheel-interaction";
+import {
+  getWheelSlotActivation,
+  isWheelActionSelected
+} from "../src/wheel-interaction";
 import type { WheelAction } from "../src/types";
 
 const action: WheelAction = {
@@ -24,5 +27,14 @@ describe("getWheelSlotActivation", () => {
 
   test("also activates an empty settings preview slot for setup", () => {
     expect(getWheelSlotActivation(undefined, false)).toBe("slot");
+  });
+
+  test("never treats an empty slot as selected", () => {
+    expect(isWheelActionSelected(undefined, undefined)).toBe(false);
+  });
+
+  test("selects only an action with the requested id", () => {
+    expect(isWheelActionSelected(action, "action")).toBe(true);
+    expect(isWheelActionSelected(action, "another-action")).toBe(false);
   });
 });

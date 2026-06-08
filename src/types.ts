@@ -21,6 +21,8 @@ export interface WheelAppearanceSettings {
   actionSegmentColor: string;
   emptySegmentColor: string;
   highlightColor: string;
+  textColor: string;
+  selectedBorderColor: string;
   dividerColor: string;
   dividerWidth: number;
   centerColor: string;

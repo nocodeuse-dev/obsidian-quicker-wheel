@@ -75,6 +75,21 @@ const ORIGINAL_DEFAULT_WHEEL_APPEARANCE = {
   emptySlotDisplay: "full"
 } as const;
 
+const PREVIOUS_DEFAULT_WHEEL_APPEARANCE = {
+  theme: "soft",
+  segmentColor: "#f8f7fc",
+  actionSegmentColor: "#eee9ff",
+  emptySegmentColor: "#fbfaff",
+  highlightColor: "#ddd2ff",
+  dividerColor: "#d9d4e3",
+  dividerWidth: 1,
+  centerColor: "#ffffff",
+  centerIconColor: "#7c3aed",
+  centerSize: 17,
+  shadow: "soft",
+  emptySlotDisplay: "icon"
+} as const;
+
 export const DEFAULT_SETTINGS: ObsidianQuickerSettings = {
   wheel: {
     ringCount: 2,
@@ -85,17 +100,19 @@ export const DEFAULT_SETTINGS: ObsidianQuickerSettings = {
     opacity: 100,
     appearance: {
       theme: "soft",
-      segmentColor: "#f8f7fc",
-      actionSegmentColor: "#eee9ff",
-      emptySegmentColor: "#fbfaff",
-      highlightColor: "#ddd2ff",
-      dividerColor: "#d9d4e3",
+      segmentColor: "#fbfbfc",
+      actionSegmentColor: "#fbfbfc",
+      emptySegmentColor: "#fbfbfc",
+      highlightColor: "#fbfbfc",
+      textColor: "#242428",
+      selectedBorderColor: "#ef4444",
+      dividerColor: "#d8d8de",
       dividerWidth: 1,
       centerColor: "#ffffff",
       centerIconColor: "#7c3aed",
       centerSize: 17,
       shadow: "soft",
-      emptySlotDisplay: "icon"
+      emptySlotDisplay: "hidden"
     }
   },
   floatingButton: {
@@ -142,7 +159,9 @@ export function normalizeSettings(input: unknown): ObsidianQuickerSettings {
   const source: SettingsInput = isRecord(input) ? input : {};
   const wheel = source.wheel ?? {};
   const storedWheelAppearance = wheel.appearance ?? {};
-  const wheelAppearance = isOriginalDefaultWheelAppearance(storedWheelAppearance)
+  const wheelAppearance =
+    isOriginalDefaultWheelAppearance(storedWheelAppearance) ||
+    isPreviousDefaultWheelAppearance(storedWheelAppearance)
     ? DEFAULT_SETTINGS.wheel.appearance
     : storedWheelAppearance;
   const floatingButton = source.floatingButton ?? {};
@@ -184,6 +203,14 @@ export function normalizeSettings(input: unknown): ObsidianQuickerSettings {
       highlightColor: normalizeHexColor(
         wheelAppearance.highlightColor,
         DEFAULT_SETTINGS.wheel.appearance.highlightColor
+      ),
+      textColor: normalizeHexColor(
+        wheelAppearance.textColor,
+        DEFAULT_SETTINGS.wheel.appearance.textColor
+      ),
+      selectedBorderColor: normalizeHexColor(
+        wheelAppearance.selectedBorderColor,
+        DEFAULT_SETTINGS.wheel.appearance.selectedBorderColor
       ),
       dividerColor: normalizeHexColor(
         wheelAppearance.dividerColor,
@@ -295,6 +322,15 @@ function isOriginalDefaultWheelAppearance(
   return Object.entries(ORIGINAL_DEFAULT_WHEEL_APPEARANCE).every(
     ([key, value]) =>
       appearance[key as keyof typeof ORIGINAL_DEFAULT_WHEEL_APPEARANCE] === value
+  );
+}
+
+function isPreviousDefaultWheelAppearance(
+  appearance: DeepPartial<ObsidianQuickerSettings["wheel"]["appearance"]>
+): boolean {
+  return Object.entries(PREVIOUS_DEFAULT_WHEEL_APPEARANCE).every(
+    ([key, value]) =>
+      appearance[key as keyof typeof PREVIOUS_DEFAULT_WHEEL_APPEARANCE] === value
   );
 }
 

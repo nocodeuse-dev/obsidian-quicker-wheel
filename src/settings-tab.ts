@@ -215,8 +215,12 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
       this.plugin.settings.wheel.appearance.emptySegmentColor = value;
       await this.plugin.saveSettingsAndRefresh();
     });
-    this.addColorSetting(section, "高亮颜色", "选中或悬停扇区的颜色。", this.plugin.settings.wheel.appearance.highlightColor, async (value) => {
-      this.plugin.settings.wheel.appearance.highlightColor = value;
+    this.addColorSetting(section, "文字与图标颜色", "轮盘动作名称和图标的颜色。", this.plugin.settings.wheel.appearance.textColor, async (value) => {
+      this.plugin.settings.wheel.appearance.textColor = value;
+      await this.plugin.saveSettingsAndRefresh();
+    });
+    this.addColorSetting(section, "选中边框颜色", "设置动作时，当前扇区的边框颜色。", this.plugin.settings.wheel.appearance.selectedBorderColor, async (value) => {
+      this.plugin.settings.wheel.appearance.selectedBorderColor = value;
       await this.plugin.saveSettingsAndRefresh();
     });
     this.addColorSetting(section, "分割线颜色", "轮盘扇区之间的线条颜色。", this.plugin.settings.wheel.appearance.dividerColor, async (value) => {
@@ -250,20 +254,6 @@ export class ObsidianQuickerSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.wheel.appearance.shadow)
           .onChange(async (value) => {
             this.plugin.settings.wheel.appearance.shadow = value as typeof this.plugin.settings.wheel.appearance.shadow;
-            await this.plugin.saveSettingsAndRefresh();
-          })
-      );
-    new Setting(section)
-      .setName("空位显示")
-      .setDesc("减少空位文字可以让轮盘更清爽。")
-      .addDropdown((dropdown) =>
-        dropdown
-          .addOption("full", "显示 + 和空")
-          .addOption("icon", "只显示 +")
-          .addOption("hidden", "隐藏空位标记")
-          .setValue(this.plugin.settings.wheel.appearance.emptySlotDisplay)
-          .onChange(async (value) => {
-            this.plugin.settings.wheel.appearance.emptySlotDisplay = value as typeof this.plugin.settings.wheel.appearance.emptySlotDisplay;
             await this.plugin.saveSettingsAndRefresh();
           })
       );

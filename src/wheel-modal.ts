@@ -5,10 +5,12 @@ import { shouldCloseWheelFromPointerTarget } from "./dom-events";
 import { executeObsidianCommand } from "./obsidian-commands";
 import {
   DEFAULT_CENTER_ICON,
-  DEFAULT_EMPTY_SLOT_ICON,
   renderConfiguredIcon
 } from "./icons";
-import { getWheelSlotActivation } from "./wheel-interaction";
+import {
+  getWheelSlotActivation,
+  isWheelActionSelected
+} from "./wheel-interaction";
 import {
   buildWheelSlots,
   calculateWheelRenderSize,
@@ -230,6 +232,11 @@ export function renderWheelPreview(
   wrapper.style.setProperty("--quicker-wheel-action-color", settings.wheel.appearance.actionSegmentColor);
   wrapper.style.setProperty("--quicker-wheel-empty-color", settings.wheel.appearance.emptySegmentColor);
   wrapper.style.setProperty("--quicker-wheel-highlight-color", settings.wheel.appearance.highlightColor);
+  wrapper.style.setProperty("--quicker-wheel-text-color", settings.wheel.appearance.textColor);
+  wrapper.style.setProperty(
+    "--quicker-wheel-selected-border-color",
+    settings.wheel.appearance.selectedBorderColor
+  );
   wrapper.style.setProperty("--quicker-wheel-divider-color", settings.wheel.appearance.dividerColor);
   wrapper.style.setProperty("--quicker-wheel-divider-width", `${settings.wheel.appearance.dividerWidth}`);
   wrapper.style.setProperty("--quicker-wheel-center-color", settings.wheel.appearance.centerColor);
@@ -248,9 +255,11 @@ export function renderWheelPreview(
   const labels = wrapper.createDiv({ cls: "obsidian-quicker-wheel-labels" });
   labels.style.width = `${size}px`;
   labels.style.height = `${size}px`;
+  let selectedPath: SVGPathElement | null = null;
 
   for (const slot of slots) {
     const action = findActionForSlot(settings.actions, slot.ringIndex, slot.slotIndex);
+    const isSelected = isWheelActionSelected(action, options.selectedActionId);
     const path = activeDocument.createElementNS("http://www.w3.org/2000/svg", "path");
     const innerRadius = center * slot.innerRadiusRatio;
     const outerRadius = center * slot.outerRadiusRatio;
@@ -264,7 +273,7 @@ export function renderWheelPreview(
     } else {
       path.addClass("is-empty");
     }
-    if (action?.id === options.selectedActionId) {
+    if (isSelected) {
       path.addClass("is-selected");
     }
     path.addEventListener("click", (event) => {
@@ -278,14 +287,18 @@ export function renderWheelPreview(
         void options.onSlot(slot);
       }
     });
-    svg.appendChild(path);
+    if (isSelected) {
+      selectedPath = path;
+    } else {
+      svg.appendChild(path);
+    }
 
     const labelPoint = polarToCartesian(center, center * slot.labelRadiusRatio, slot.labelAngle);
     const label = labels.createDiv({ cls: "obsidian-quicker-wheel-label" });
     label.style.left = `${labelPoint.x}px`;
     label.style.top = `${labelPoint.y}px`;
     label.toggleClass("is-empty", !action);
-    label.toggleClass("is-selected", action?.id === options.selectedActionId);
+    label.toggleClass("is-selected", isSelected);
     label.setAttr("aria-label", action ? action.label : "空动作");
     label.addEventListener("click", (event) => {
       event.stopPropagation();
@@ -305,18 +318,11 @@ export function renderWheelPreview(
         action.icon
       );
       label.createDiv({ cls: "obsidian-quicker-wheel-text", text: action.label });
-    } else {
-      if (settings.wheel.appearance.emptySlotDisplay !== "hidden") {
-        renderConfiguredIcon(
-          label.createDiv({ cls: "obsidian-quicker-wheel-icon" }),
-          DEFAULT_EMPTY_SLOT_ICON,
-          "+"
-        );
-      }
-      if (settings.wheel.appearance.emptySlotDisplay === "full") {
-        label.createDiv({ cls: "obsidian-quicker-wheel-text", text: "空" });
-      }
     }
+  }
+
+  if (selectedPath) {
+    svg.appendChild(selectedPath);
   }
 
   const centerButton = wrapper.createDiv({
