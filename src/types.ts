@@ -1,4 +1,5 @@
 export type WheelActionType = "command" | "file" | "uri" | "script";
+export type PluginLanguage = "auto" | "zh" | "en";
 export type FloatingDirectionActionType = WheelActionType | "wheelAction";
 
 export interface WheelMenuSettings {
@@ -118,6 +119,7 @@ export interface WheelAction {
 }
 
 export interface ObsidianQuickerSettings {
+  language: PluginLanguage;
   wheel: WheelMenuSettings;
   floatingButton: FloatingButtonSettings;
   actions: WheelAction[];

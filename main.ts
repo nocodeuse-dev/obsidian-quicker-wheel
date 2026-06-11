@@ -1,9 +1,10 @@
-import { Notice, Platform, Plugin, TFile } from "obsidian";
+import { moment, Notice, Platform, Plugin, TFile } from "obsidian";
 import { executeFloatingDirectionAction } from "./src/action-executor";
 import { FloatingWheelButton } from "./src/floating-button";
 import {
   createOrSelectActionForSlot,
   DEFAULT_SETTINGS,
+  localizeBuiltinActionLabels,
   normalizeSettings
 } from "./src/settings";
 import { ObsidianQuickerSettingTab } from "./src/settings-tab";
@@ -12,6 +13,13 @@ import type { WheelSlot } from "./src/types";
 import type { FloatingGestureDirection } from "./src/types";
 import { executeObsidianCommand } from "./src/obsidian-commands";
 import { AndroidQuickerWheelOverlay, QuickerWheelModal } from "./src/wheel-modal";
+import {
+  resolvePluginLocale,
+  setPluginLocale,
+  t,
+  tr
+} from "./src/i18n";
+import type { PluginLanguage } from "./src/types";
 
 type AppWithSettings = typeof Plugin.prototype.app & {
   setting?: {
@@ -28,6 +36,7 @@ export default class ObsidianQuickerPlugin extends Plugin {
   private settingTab: ObsidianQuickerSettingTab | null = null;
 
   async onload(): Promise<void> {
+    setPluginLocale(resolvePluginLocale("auto", moment.locale()));
     try {
       await this.loadSettings();
     } catch (error) {
@@ -37,19 +46,19 @@ export default class ObsidianQuickerPlugin extends Plugin {
 
     this.addCommand({
       id: "open-wheel",
-      name: "打开轮盘",
+      name: t("command.openWheel"),
       callback: () => this.openWheel()
     });
 
     this.addCommand({
       id: "toggle-floating-button",
-      name: "开关悬浮按钮",
+      name: t("command.toggleFloating"),
       callback: () => this.toggleFloatingButton()
     });
 
     this.addCommand({
       id: "open-settings",
-      name: "打开插件设置",
+      name: t("command.openSettings"),
       callback: () => this.openPluginSettings()
     });
 
@@ -83,7 +92,11 @@ export default class ObsidianQuickerPlugin extends Plugin {
     const result = createOrSelectActionForSlot(this.settings, slot.ringIndex, slot.slotIndex);
     await this.saveSettingsAndRefresh();
     this.openActionSettings(result.action.id);
-    new Notice(result.created ? "已为空位创建新动作" : "已打开该位置的动作设置");
+    new Notice(
+      result.created
+        ? tr("已为空位创建新动作", "Created a new action for the empty slot")
+        : tr("已打开该位置的动作设置", "Opened the action settings for this slot")
+    );
   }
 
   async toggleFloatingButton(): Promise<void> {
@@ -98,18 +111,23 @@ export default class ObsidianQuickerPlugin extends Plugin {
       : this.settings.floatingButton.desktopEnabled;
     new Notice(
       enabled
-        ? "Quicker Wheel 悬浮按钮已开启"
-        : "Quicker Wheel 悬浮按钮已关闭"
+        ? tr("Quicker Wheel 悬浮按钮已开启", "Quicker Wheel floating button enabled")
+        : tr("Quicker Wheel 悬浮按钮已关闭", "Quicker Wheel floating button disabled")
     );
   }
 
   async loadSettings(): Promise<void> {
     const savedData: unknown = await this.loadData();
+    const language = getSavedLanguage(savedData);
+    setPluginLocale(resolvePluginLocale(language, moment.locale()));
     this.settings = normalizeSettings(savedData);
+    localizeBuiltinActionLabels(this.settings);
   }
 
   async saveSettingsAndRefresh(): Promise<void> {
     this.settings = normalizeSettings(this.settings);
+    setPluginLocale(resolvePluginLocale(this.settings.language, moment.locale()));
+    localizeBuiltinActionLabels(this.settings);
     this.saveQueue = this.saveQueue.then(async () => {
       await this.saveData(this.settings);
       if (this.isLayoutReady) {
@@ -123,12 +141,25 @@ export default class ObsidianQuickerPlugin extends Plugin {
     const appWithSettings = this.app as AppWithSettings;
 
     if (!appWithSettings.setting) {
-      new Notice("请打开 Obsidian 设置中的 Quicker Wheel 页面");
+      new Notice(
+        tr(
+          "请打开 Obsidian 设置中的 Quicker Wheel 页面",
+          "Open the Quicker Wheel page in Obsidian settings"
+        )
+      );
       return;
     }
 
     appWithSettings.setting.open();
     appWithSettings.setting.openTabById(this.manifest.id);
+  }
+
+  async setLanguagePreference(language: PluginLanguage): Promise<void> {
+    this.settings.language = language;
+    setPluginLocale(resolvePluginLocale(language, moment.locale()));
+    localizeBuiltinActionLabels(this.settings);
+    await this.saveSettingsAndRefresh();
+    this.settingTab?.display();
   }
 
   private safeMountFloatingButton(): void {
@@ -166,7 +197,7 @@ export default class ObsidianQuickerPlugin extends Plugin {
   private executeFloatingDirectionCommand(direction: FloatingGestureDirection): void {
     const action = this.settings.floatingButton.directionActions[direction];
     if (!action) {
-      new Notice("这个方向还没有设置动作");
+      new Notice(tr("这个方向还没有设置动作", "No action is assigned to this direction"));
       return;
     }
 
@@ -181,7 +212,7 @@ export default class ObsidianQuickerPlugin extends Plugin {
     );
 
     if (!result.ok) {
-      new Notice(result.message ?? "方向动作执行失败");
+      new Notice(result.message ?? tr("方向动作执行失败", "Direction action failed"));
     }
   }
 
@@ -218,4 +249,17 @@ export default class ObsidianQuickerPlugin extends Plugin {
       edgeHide: this.settings.floatingButton.edgeHide
     };
   }
+}
+
+function getSavedLanguage(data: unknown): PluginLanguage {
+  if (
+    typeof data === "object" &&
+    data !== null &&
+    "language" in data &&
+    (data.language === "zh" || data.language === "en")
+  ) {
+    return data.language;
+  }
+
+  return "auto";
 }

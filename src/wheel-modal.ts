@@ -21,6 +21,7 @@ import {
   polarToCartesian
 } from "./wheel-layout";
 import type { ObsidianQuickerSettings, WheelAction, WheelSlot } from "./types";
+import { tr } from "./i18n";
 
 export class QuickerWheelModal extends Modal {
   private closeTimer: number | null = null;
@@ -70,7 +71,7 @@ export class QuickerWheelModal extends Modal {
     });
 
     if (!result.ok) {
-      new Notice(result.message ?? "动作执行失败");
+      new Notice(result.message ?? tr("动作执行失败", "Action failed"));
       return;
     }
 
@@ -164,7 +165,7 @@ export class AndroidQuickerWheelOverlay {
     });
 
     if (!result.ok) {
-      new Notice(result.message ?? "动作执行失败");
+      new Notice(result.message ?? tr("动作执行失败", "Action failed"));
       return;
     }
 
@@ -300,7 +301,7 @@ export function renderWheelPreview(
     label.style.top = `${labelPoint.y}px`;
     label.toggleClass("is-empty", !action);
     label.toggleClass("is-selected", isSelected);
-    label.setAttr("aria-label", action ? action.label : "空动作");
+    label.setAttr("aria-label", action ? action.label : tr("空动作", "Empty action"));
     label.addEventListener("click", (event) => {
       event.stopPropagation();
       const activation = getWheelSlotActivation(action, options.interactive);
@@ -332,8 +333,8 @@ export function renderWheelPreview(
   const centerAction = getCenterAction(settings.actions);
   const isCenterSelected = isWheelActionSelected(centerAction, options.selectedActionId);
   centerButton.toggleClass("is-selected", isCenterSelected);
-  centerButton.setAttr("aria-label", centerAction?.label ?? "中心动作");
-  centerButton.setAttr("title", centerAction?.label ?? "中心动作");
+  centerButton.setAttr("aria-label", centerAction?.label ?? tr("中心动作", "Center action"));
+  centerButton.setAttr("title", centerAction?.label ?? tr("中心动作", "Center action"));
   renderConfiguredIcon(centerButton, centerAction?.icon ?? DEFAULT_CENTER_ICON, "Q");
   centerButton.addEventListener("click", (event) => {
     event.stopPropagation();

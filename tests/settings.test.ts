@@ -12,6 +12,7 @@ describe("normalizeSettings", () => {
   test("fills missing settings with mobile-friendly defaults", () => {
     const settings = normalizeSettings({});
 
+    expect(settings.language).toBe("auto");
     expect(settings.wheel.ringCount).toBe(2);
     expect(settings.wheel.slotsPerRing).toBe(8);
     expect(settings.wheel.size).toBe(340);
@@ -140,6 +141,12 @@ describe("normalizeSettings", () => {
     expect(settings.wheel.ringCount).toBe(DEFAULT_SETTINGS.wheel.ringCount);
     expect(settings.floatingButton.mobileEnabled).toBe(true);
     expect(settings.actions.length).toBeGreaterThan(0);
+  });
+
+  test("normalizes language preference", () => {
+    expect(normalizeSettings({ language: "en" }).language).toBe("en");
+    expect(normalizeSettings({ language: "zh" }).language).toBe("zh");
+    expect(normalizeSettings({ language: "broken" }).language).toBe("auto");
   });
 
   test("accepts 1 percent floating opacity and clamps invalid values", () => {

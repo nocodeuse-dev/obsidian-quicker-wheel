@@ -1,4 +1,5 @@
 import type { App } from "obsidian";
+import { getCurrentPluginLocale } from "./i18n";
 
 export interface ObsidianCommand {
   id: string;
@@ -28,7 +29,7 @@ export function listObsidianCommands(app: App): ObsidianCommand[] {
   }
 
   return Object.values(commandManager.listCommands()).sort((a, b) =>
-    a.name.localeCompare(b.name, "zh-Hans")
+    a.name.localeCompare(b.name, getCurrentPluginLocale() === "zh" ? "zh-Hans" : "en")
   );
 }
 

@@ -2,6 +2,7 @@ import type {
   FloatingGestureDirection,
   FloatingGestureSettings
 } from "./types";
+import { tr } from "./i18n";
 
 export interface FloatingGestureInput {
   elapsedMs: number;
@@ -26,16 +27,19 @@ export const FLOATING_DIRECTIONS: FloatingGestureDirection[] = [
   "up-left"
 ];
 
-export const FLOATING_DIRECTION_LABELS: Record<FloatingGestureDirection, string> = {
-  up: "上",
-  "up-right": "右上",
-  right: "右",
-  "down-right": "右下",
-  down: "下",
-  "down-left": "左下",
-  left: "左",
-  "up-left": "左上"
-};
+export function getFloatingDirectionLabel(direction: FloatingGestureDirection): string {
+  const labels: Record<FloatingGestureDirection, [string, string]> = {
+    up: ["上", "Up"],
+    "up-right": ["右上", "Up right"],
+    right: ["右", "Right"],
+    "down-right": ["右下", "Down right"],
+    down: ["下", "Down"],
+    "down-left": ["左下", "Down left"],
+    left: ["左", "Left"],
+    "up-left": ["左上", "Up left"]
+  };
+  return tr(...labels[direction]);
+}
 
 export const FLOATING_DIRECTION_ANGLES: Record<FloatingGestureDirection, number> = {
   right: 0,

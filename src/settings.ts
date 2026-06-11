@@ -9,6 +9,7 @@ import type {
   WheelAction
 } from "./types";
 import { FLOATING_DIRECTIONS } from "./floating-gesture";
+import { t } from "./i18n";
 
 const DEFAULT_ACTIONS: WheelAction[] = [
   {
@@ -107,6 +108,7 @@ const PREVIOUS_DEFAULT_WHEEL_APPEARANCE = {
 } as const;
 
 export const DEFAULT_SETTINGS: ObsidianQuickerSettings = {
+  language: "auto",
   wheel: {
     ringCount: 2,
     slotsPerRing: 8,
@@ -275,6 +277,10 @@ export function normalizeSettings(input: unknown): ObsidianQuickerSettings {
   };
 
   return {
+    language:
+      source.language === "zh" || source.language === "en"
+        ? source.language
+        : DEFAULT_SETTINGS.language,
     wheel: normalizedWheel,
     floatingButton: {
       mobileEnabled:
@@ -501,7 +507,7 @@ export function createBlankAction(ringIndex: number, slotIndex: number): WheelAc
   const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   return {
     id: `action-${suffix}`,
-    label: "新动作",
+    label: t("action.newAction"),
     icon: "star",
     type: "command",
     commandId: "",
@@ -510,6 +516,29 @@ export function createBlankAction(ringIndex: number, slotIndex: number): WheelAc
     ringIndex,
     slotIndex
   };
+}
+
+const BUILTIN_ACTION_LABELS: Record<
+  string,
+  { key: "action.commands" | "action.switcher" | "action.newNote" | "action.settings" | "action.pluginSettings"; labels: string[] }
+> = {
+  "command-palette": { key: "action.commands", labels: ["命令", "Commands"] },
+  "quick-switcher": { key: "action.switcher", labels: ["切换", "Switcher"] },
+  "new-note": { key: "action.newNote", labels: ["新建", "New note"] },
+  settings: { key: "action.settings", labels: ["设置", "Settings"] },
+  [CENTER_ACTION_ID]: {
+    key: "action.pluginSettings",
+    labels: ["插件设置", "Plugin settings"]
+  }
+};
+
+export function localizeBuiltinActionLabels(settings: ObsidianQuickerSettings): void {
+  for (const action of settings.actions) {
+    const builtin = BUILTIN_ACTION_LABELS[action.id];
+    if (builtin?.labels.includes(action.label)) {
+      action.label = t(builtin.key);
+    }
+  }
 }
 
 export function createOrSelectActionForSlot(
@@ -587,7 +616,7 @@ function normalizeAction(
   slotsPerRing: number
 ): WheelAction {
   action.id = stringOr(action.id, `action-${index}`);
-  action.label = stringOr(action.label, "未命名");
+  action.label = stringOr(action.label, t("action.unnamed"));
   action.icon = stringOr(action.icon, "•");
   action.icon = migrateLegacyDefaultActionIcon(action.id, action.icon);
   action.placement = action.placement === "center" ? "center" : "wheel";

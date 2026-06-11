@@ -11,6 +11,7 @@ import {
   snapFloatingButtonToEdge
 } from "./floating-position";
 import { DEFAULT_CENTER_ICON, renderConfiguredIcon } from "./icons";
+import { tr } from "./i18n";
 import type {
   FloatingButtonColors,
   FloatingEdgeHideSettings,
@@ -78,7 +79,7 @@ export class FloatingWheelButton {
     const button = ownerDocument.createElement("button");
     button.type = "button";
     button.addClass("obsidian-quicker-floating-button");
-    button.setAttr("aria-label", "打开 Quicker Wheel 轮盘");
+    button.setAttr("aria-label", tr("打开 Quicker Wheel 轮盘", "Open Quicker Wheel"));
     renderConfiguredIcon(
       button.createSpan({ cls: "obsidian-quicker-floating-symbol" }),
       DEFAULT_CENTER_ICON,
